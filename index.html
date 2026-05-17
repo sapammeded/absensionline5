@@ -908,6 +908,7 @@ async function submitAbsen() {
             // 🔴 TAMBAHKAN INI UNTUK KIRIM KE GOOGLE SHEETS 🔴
             if (GOOGLE_SHEETS_WEBHOOK) {
     try {
+
         const sheetData = {
             waktu: WIB_TIME(),
             nama: userName.toUpperCase(),
@@ -915,7 +916,7 @@ async function submitAbsen() {
             project: selectedLocation.project,
             jarak: Math.round(currentGPS.coords.accuracy) + "m",
             akurasi: Math.round(currentGPS.coords.accuracy) + "m",
-            status: isMockGPS ? "FAKE_GPS" : (isAlert ? "ALERT" : "NORMAL"),
+            status: isMockGPS ? "FAKE_GPS" : (result.alert ? "ALERT" : "NORMAL"),
             lat: lat,
             lng: lng,
             fingerprint: fingerprint.substring(0, 20),
@@ -923,17 +924,23 @@ async function submitAbsen() {
             id: result.logId,
             timestamp: timestamp
         };
-        
-        // 🔴 PAKAI mode: 'no-cors' 🔴
-        fetch(GOOGLE_SHEETS_WEBHOOK, {
+
+        const sheetResponse = await fetch(GOOGLE_SHEETS_WEBHOOK, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(sheetData)
         });
-        addLog("📊 Data dikirim ke Google Sheets", false);
+
+        const sheetResult = await sheetResponse.text();
+
+        addLog("📊 Sheets OK: " + sheetResult, false);
+
     } catch(sheetErr) {
-        addLog("⚠️ Gagal kirim ke sheets: " + sheetErr.message, true);
+
+        addLog("❌ Sheets Error: " + sheetErr.message, true);
+
     }
 }
             
