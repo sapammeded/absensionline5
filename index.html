@@ -200,7 +200,8 @@ async function checkTodayStatus() {
         }, 10000, 2);
         if (data.ok && data.logs) {
             const today = getTodayDate();
-            const todayLogs = data.logs.filter(l => l.waktu && l.waktu.includes(today));
+            // Filter berdasarkan tanggal dari waktu lengkap
+            const todayLogs = data.logs.filter(l => l.waktu && l.waktu.includes(new Date().toLocaleDateString('id-ID')));
             
             const masukLog = todayLogs.find(l => l.status === "MASUK");
             const pulangLog = todayLogs.find(l => l.status === "PULANG");
@@ -210,14 +211,20 @@ async function checkTodayStatus() {
             todayStatus.masukId = masukLog?.id;
             todayStatus.pulangId = pulangLog?.id;
             
-            $('todayMasuk').innerHTML = todayStatus.masuk ? `✅ ${masukLog.waktu.split(' ')[1]}` : "❌ Belum absen masuk";
-            $('todayPulang').innerHTML = todayStatus.pulang ? `✅ ${pulangLog.waktu.split(' ')[1]}` : "❌ Belum absen pulang";
+            const masukTime = masukLog ? masukLog.waktu.split(' ')[1] : "";
+            const pulangTime = pulangLog ? pulangLog.waktu.split(' ')[1] : "";
             
-            // Update tombol berdasarkan status
+            $('todayMasuk').innerHTML = todayStatus.masuk ? `✅ ${masukTime}` : "❌ Belum absen masuk";
+            $('todayPulang').innerHTML = todayStatus.pulang ? `✅ ${pulangTime}` : "❌ Belum absen pulang";
+            
+            // Update tombol
             const masukBtn = $('absenMasukBtn');
             const pulangBtn = $('absenPulangBtn');
             if (masukBtn) masukBtn.disabled = todayStatus.masuk;
+            // Tombol pulang aktif hanya jika sudah masuk dan belum pulang
             if (pulangBtn) pulangBtn.disabled = todayStatus.pulang || !todayStatus.masuk;
+            
+            addLog(`📊 Status: MASUK=${todayStatus.masuk}, PULANG=${todayStatus.pulang}`, false);
         }
     } catch(e) { addLog("⚠️ Gagal cek status: " + e.message, true); }
 }
@@ -453,10 +460,24 @@ async function submitAbsen(jenis) {
         if (result && result.ok) {
             addLog(`✅ ABSEN ${jenis} BERHASIL! ID: ${result.logId}`);
             
+            // Format waktu lengkap untuk spreadsheet
+            const now = new Date();
+            const options = { 
+                timeZone: 'Asia/Jakarta',
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            const waktuLengkap = now.toLocaleString('id-ID', options);
+            
             // Kirim ke Google Sheets
             if (GOOGLE_SHEETS_WEBHOOK) {
                 const sheetData = {
-                    waktu: WIB_TIME(),
+                    waktu: waktuLengkap,
                     nama: userName.toUpperCase(),
                     lokasi: selectedLocation.name,
                     project: selectedLocation.project,
@@ -479,8 +500,12 @@ async function submitAbsen(jenis) {
                 addLog("📊 Data dikirim ke Google Sheets", false);
             }
             
-            alert(`✅ ABSEN ${jenis} BERHASIL!\nID: ${result.logId}`);
-            setTimeout(() => location.reload(), 2000);
+            alert(`✅ ABSEN ${jenis} BERHASIL!\nLokasi: ${selectedLocation.name}\nJarak: ${Math.round(currentGPS.coords.accuracy)}m\nID: ${result.logId}`);
+            
+            // Refresh status setelah absen
+            await checkTodayStatus();
+            
+            setTimeout(() => location.reload(), 3000);
         } else {
             throw new Error(result?.code || result?.msg || 'Unknown error');
         }
@@ -490,6 +515,7 @@ async function submitAbsen(jenis) {
         alert("Error: " + e.message);
     } finally {
         isSubmitting = false;
+        btn.disabled = !isSystemReady();
         btn.innerHTML = jenis === "MASUK" ? "✅ ABSEN MASUK" : "🏠 ABSEN PULANG";
         updateSystemUI();
     }
