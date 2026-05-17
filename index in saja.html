@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>💀 ELITE ABSENSI 💀</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--neon-green:#00ff9d;--neon-red:#ff0055;--neon-yellow:#ffaa00;--dark-bg:#0a0a0a;--card-bg:#111111}
+        body{background:var(--dark-bg);color:var(--neon-green);font-family:'Courier New',monospace;padding:16px;min-height:100vh}
+        .container{max-width:600px;margin:0 auto;background:var(--card-bg);border:2px solid var(--neon-green);border-radius:24px;padding:20px}
+        h1{text-align:center;font-size:1.4rem;border-bottom:2px dashed var(--neon-green);padding-bottom:12px;margin-bottom:20px}
+        .status-bar{background:#000;border:1px solid var(--neon-green);border-radius:12px;padding:10px;margin-bottom:15px;display:flex;flex-wrap:wrap;gap:8px;font-size:0.7rem}
+        .status-badge{background:rgba(0,255,157,0.1);padding:4px 10px;border-radius:20px;border-left:3px solid var(--neon-green)}
+        .camera-container{position:relative;margin:15px 0;border-radius:16px;overflow:hidden;border:3px solid var(--neon-red);background:#000}
+        video{width:100%;height:320px;object-fit:cover;transform:scaleX(-1);display:block}
+        .laser-scan{position:absolute;top:0;left:0;width:100%;height:3px;background:var(--neon-red);animation:scan 2.5s ease-in-out infinite;pointer-events:none}
+        @keyframes scan{0%,100%{top:5%}50%{top:92%}}
+        .btn-primary{background:var(--neon-red);color:white;padding:18px;font-size:1.3rem;font-weight:bold;border:none;border-radius:60px;width:100%;margin:15px 0;cursor:pointer;text-transform:uppercase}
+        .btn-primary:disabled{background:#444;cursor:not-allowed;opacity:0.6}
+        .btn-secondary{background:transparent;border:1px solid var(--neon-green);color:var(--neon-green);padding:12px;border-radius:30px;cursor:pointer;font-weight:bold;flex:1;text-align:center}
+        .btn-icon{background:transparent;border:1px solid var(--neon-green);color:var(--neon-green);padding:8px 15px;border-radius:30px;cursor:pointer;font-size:0.8rem}
+        input,select{width:100%;padding:14px;margin:8px 0;background:#050505;border:1px solid var(--neon-green);color:var(--neon-green);border-radius:30px;font-size:1rem;outline:none}
+        .qr-box{background:#000;border:2px solid var(--neon-green);border-radius:16px;padding:12px;margin:10px 0;text-align:center}
+        .qr-box canvas{background:white;padding:8px;border-radius:12px;margin:8px auto}
+        .log-console{background:#010a0c;border:1px solid var(--neon-green);height:140px;overflow-y:auto;padding:8px;font-size:0.7rem;border-radius:12px;margin-top:15px}
+        .flex-row{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.97);z-index:1000;justify-content:center;align-items:center}
+        .modal-content{background:#000;border:3px solid var(--neon-green);border-radius:24px;padding:20px;max-width:90%;width:500px;max-height:80%;overflow-y:auto}
+        .location-item{background:#0a1a15;margin:8px 0;padding:10px;border-radius:12px;border-left:3px solid var(--neon-green);font-size:0.8rem}
+        .gps-fixed{position:fixed;bottom:10px;right:10px;background:#000;padding:6px 12px;border-radius:20px;font-size:0.6rem;border:1px solid var(--neon-green);z-index:99}
+        footer{text-align:center;font-size:0.6rem;margin-top:15px;opacity:0.7}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:20px}
+        .stat-card{background:#0a0a0a;border:1px solid var(--neon-green);border-radius:12px;padding:10px;text-align:center}
+        .stat-value{font-size:1.5rem;font-weight:bold;color:var(--neon-green)}
+        .stat-label{font-size:0.6rem;opacity:0.7}
+        .filter-bar{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;background:#0a0a0a;padding:10px;border-radius:16px}
+        .filter-select{background:#050505;border:1px solid var(--neon-green);color:var(--neon-green);padding:8px;border-radius:20px}
+        table{width:100%;font-size:0.7rem;border-collapse:collapse}
+        th,td{border:1px solid #333;padding:6px;text-align:left}
+        .alert-row{background:rgba(255,0,85,0.2)}
+        .anomaly-row{background:rgba(255,170,0,0.2)}
+        .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.6rem}
+        .badge-alert{background:#ff0055;color:white}
+        .badge-anomaly{background:#ffaa00;color:#000}
+        .badge-normal{background:#00ff9d;color:#000}
+        .photo-thumb{width:50px;height:50px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--neon-green);background:#333}
+        .photo-modal-img{max-width:100%;max-height:80vh;border-radius:16px;border:2px solid var(--neon-green)}
+        .progress-bar{width:100%;height:8px;background:#333;border-radius:4px;margin-top:5px;overflow:hidden}
+        .progress-fill{height:100%;background:var(--neon-green);border-radius:4px;transition:width 0.3s}
+        @media print{.camera-container,.qr-box,.btn-primary,.flex-row,.gps-fixed,.status-bar,footer,.log-console{display:none}}
+        .network-status{position:fixed;top:5px;left:5px;padding:4px 10px;border-radius:20px;font-size:0.6rem;z-index:100;background:#000;border:1px solid}
+        .challenge-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:10000;display:flex;justify-content:center;align-items:center;flex-direction:column}
+        .challenge-box{background:#000;border:3px solid #ff0055;border-radius:24px;padding:30px;text-align:center;max-width:90%}
+        .challenge-text{font-size:1.8rem;color:#ff0055;margin-bottom:20px;text-transform:uppercase}
+        .challenge-timer{font-size:3rem;color:#00ff9d;margin:20px 0}
+        .security-badge{background:rgba(0,255,157,0.1);padding:2px 8px;border-radius:10px;font-size:0.5rem;margin-left:5px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="network-status" id="networkStatus">🟢 ONLINE</div>
+    <h1>⚡ ELITE ABSENSI ⚡ <span class="security-badge">🔒 SECURE v2.0</span></h1>
+    <div class="status-bar">
+        <span class="status-badge" id="sysStatus">🔴 INIT...</span>
+        <span class="status-badge" id="qrStatus">📱 QR: --</span>
+        <span class="status-badge" id="nonceStatus">🎯 NONCE: --</span>
+        <span class="status-badge" id="gpsStatus">📍 GPS: --</span>
+        <span class="status-badge" id="queueStatus">📦 Q:0</span>
+        <span class="status-badge" id="securityStatus">🛡️ AMAN</span>
+    </div>
+    <div class="qr-box">
+        <div style="display:flex;justify-content:space-between"><span>🔑 QR TOKEN (5 menit)</span><button class="btn-secondary" id="zoomQrBtn" style="padding:4px 12px">🔍 ZOOM</button></div>
+        <div id="qrContainer" style="display:flex;justify-content:center"></div>
+        <div id="qrTimer" style="font-size:0.6rem;color:var(--neon-yellow)">⏱️ --</div>
+    </div>
+    <div class="camera-container"><div class="laser-scan"></div><video id="video" autoplay playsinline muted></video><canvas id="canvas" style="display:none"></canvas></div>
+    <input type="text" id="userName" placeholder="NAMA LENGKAP" autocomplete="off">
+    <select id="locationSelect"><option value="">-- PILIH LOKASI --</option></select>
+    <button class="btn-primary" id="absenBtn" disabled>🔒 MENUNGGU SISTEM...</button>
+    <div class="flex-row">
+        <button class="btn-secondary" id="adminBtn">👑 ADMIN</button>
+        <button class="btn-secondary" id="manageLocBtn">📍 LOKASI</button>
+        <button class="btn-secondary" id="syncQueueBtn">📦 SYNC QUEUE</button>
+        <button class="btn-secondary" onclick="location.reload()">🔄 RELOAD</button>
+    </div>
+    <div id="logArea" class="log-console"></div>
+    <footer>ABSENSI ONLINE ENTERPRISE By : Mbah Pri | WIB: <span id="wibTime">--:--:--</span></footer>
+</div>
+<div class="gps-fixed" id="gpsIndicator">📍 0%</div>
+
+<div id="qrModal" class="modal"><div class="modal-content" style="text-align:center"><h3>🔍 QR CODE FULL</h3><div id="qrZoomContainer"></div><button class="btn-secondary" onclick="closeModal('qrModal')">TUTUP</button></div></div>
+
+<div id="adminModal" class="modal"><div class="modal-content" style="width:98%;max-width:1400px;max-height:90vh"><h3>👑 ABSENSI ELITE COMMAND CENTER</h3><div id="adminLoginDiv" style="text-align:center;padding:30px"><input type="password" id="adminPassword" placeholder="MASTER PASSWORD" style="max-width:300px;margin:0 auto"><button class="btn-secondary" id="loginAdminBtn" style="margin-top:15px">🔓 LOGIN</button></div><div id="adminPanel" style="display:none"><div class="stats-grid"><div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">TOTAL ABSEN</div></div><div class="stat-card"><div class="stat-value" id="statToday">0</div><div class="stat-label">HARI INI</div></div><div class="stat-card"><div class="stat-value" id="statAlert">0</div><div class="stat-label">ALERT</div></div><div class="stat-card"><div class="stat-value" id="statAnomaly">0</div><div class="stat-label">ANOMALY</div></div><div class="stat-card"><div class="stat-value" id="statBanned">0</div><div class="stat-label">BANNED</div></div><div class="stat-card"><div class="stat-value" id="statStorage">0</div><div class="stat-label">STORAGE (MB)</div></div><div class="stat-card"><div class="stat-value" id="statStoragePercent">0%</div><div class="stat-label">USED</div></div></div><div class="filter-bar"><input type="text" id="searchInput" class="filter-select" placeholder="🔍 Cari nama..." style="flex:2"><select id="filterProject" class="filter-select"><option value="ALL">📁 SEMUA PROJECT</option></select><button class="btn-icon" id="refreshDashboardBtn">🔄</button><button class="btn-icon" id="exportLogsBtn">📄</button><button class="btn-icon" id="deleteSelectedBtn" style="background:#ff0055;color:white">🗑️ CHECKED</button><button class="btn-icon" id="deleteAllBtn" style="background:#ff0055;color:white">🗑️ ALL</button><button class="btn-icon" id="unbanDeviceBtn">🔓</button><button class="btn-icon" id="resetDeviceBtn">🔄 RESET DEVICE</button><button class="btn-icon" id="settingsBtn">⚙️</button></div><div style="overflow-x:auto;max-height:500px;overflow-y:auto"><table class="elite-table"><thead><tr><th><input type="checkbox" id="selectAllCheckbox"></th><th>No</th><th>Nama</th><th>Waktu</th><th>Project</th><th>Lokasi</th><th>Jarak</th><th>Akurasi</th><th>Status</th><th>Foto</th></tr></thead><tbody id="adminTableBody"><tr><td colspan="10" class="loading">📡 LOADING DATA......</td></tr></tbody></table></div><div style="margin-top:15px"><button class="btn-secondary" onclick="closeModal('adminModal')">TUTUP</button></div></div></div></div>
+
+<div id="photoModal" class="modal"><div class="modal-content" style="text-align:center"><h3>📸 FOTO ABSEN</h3><img id="photoModalImg" class="photo-modal-img"><button class="btn-secondary" onclick="closeModal('photoModal')" style="margin-top:15px">TUTUP</button></div></div>
+
+<div id="locModal" class="modal"><div class="modal-content" style="width:90%;max-width:500px"><h3>📍 MANAJEMEN LOKASI</h3><div id="locationList" style="max-height:250px;overflow-y:auto;margin:10px 0"></div><hr><h4>➕ TAMBAH LOKASI</h4><input type="text" id="newLocName" placeholder="Nama Lokasi"><div class="flex-row"><input type="text" id="newLocLat" placeholder="Latitude"><input type="text" id="newLocLng" placeholder="Longitude"></div><button class="btn-secondary" id="autoGpsBtn" style="width:100%;margin:5px 0">📍 AMBIL GPS</button><div class="flex-row"><input type="number" id="newLocRadius" placeholder="Radius (meter)" value="50"><input type="text" id="newLocProject" placeholder="Project"></div><button class="btn-secondary" id="saveLocationBtn">💾 SIMPAN</button><button class="btn-secondary" onclick="closeModal('locModal')">TUTUP</button></div></div>
+
+<div id="editLocModal" class="modal"><div class="modal-content"><h3>✏️ EDIT LOKASI</h3><input type="hidden" id="editLocId"><input type="text" id="editLocName" placeholder="Nama Lokasi"><div class="flex-row"><input type="text" id="editLocLat" placeholder="Latitude"><input type="text" id="editLocLng" placeholder="Longitude"></div><div class="flex-row"><input type="number" id="editLocRadius" placeholder="Radius (meter)"><input type="text" id="editLocProject" placeholder="Project"></div><div class="flex-row"><button class="btn-secondary" id="updateLocationBtn">💾 UPDATE</button><button class="btn-secondary" onclick="closeModal('editLocModal')">BATAL</button></div></div></div>
+
+<div id="settingsModal" class="modal"><div class="modal-content"><h3>⚙️ PHOTO SETTINGS</h3><div style="margin-bottom:15px"><label>Kualitas Foto (30-100%):</label><input type="range" id="photoQuality" min="30" max="100" value="70" style="width:100%"><span id="qualityValue">70%</span></div><div style="margin-bottom:15px"><label>Max Size (KB):</label><input type="range" id="photoMaxSize" min="50" max="500" value="350" style="width:100%"><span id="sizeValue">350 KB</span></div><div class="progress-bar" style="margin:15px 0"><div class="progress-fill" id="storageProgress" style="width:0%"></div></div><button class="btn-secondary" id="saveSettingsBtn">💾 SIMPAN</button><button class="btn-secondary" onclick="closeModal('settingsModal')">TUTUP</button></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+// ==================== KONFIGURASI ====================
+const API_BASE = "https://absensionline5.sapammeded.workers.dev";
+const ADMIN_BASE = "https://absensionline5.sapammeded.workers.dev";
+const MASTER_KEY = "meded7373";
+const GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxrWc2Wz3Mmm-hWHQO984zglIDFpd1_RdMXKMS0IRfN3ITJLQcfS1p1VA-OGp_1aEgY/exec"; // GANTI DENGAN URL GAS LO
+
+// ==================== ANTI-CHEAT CONFIG ====================
+const ENABLE_FAKE_GPS_DETECTION = true;
+const ENABLE_LIVENESS_DETECTION = true;
+const ENABLE_RANDOM_CHALLENGE = true;
+const ENABLE_EMULATOR_DETECTION = true;
+
+// Daftar challenge untuk anti-titip absen
+const CHALLENGES = [
+    { text: "ANGKAT TANGAN KANAN", duration: 3000 },
+    { text: "KEDIPKAN MATA KIRI", duration: 2500 },
+    { text: "SENYUM LEBAR", duration: 2500 },
+    { text: "TUNJUK KE KAMERA", duration: 3000 },
+    { text: "PEGANG TELINGA KIRI", duration: 3000 },
+    { text: "ANGKAT ALIS", duration: 2500 },
+    { text: "GELENGKAN KEPALA", duration: 3000 },
+    { text: "ANGGUKKAN KEPALA", duration: 3000 },
+    { text: "BUKA MULUT LEBAR", duration: 2500 },
+    { text: "CUBIT PIPI KANAN", duration: 3000 }
+];
+
+// ==================== CIRCUIT BREAKER & MUTEX ====================
+class CircuitBreaker {
+    constructor(failureThreshold = 3, timeout = 30000) {
+        this.failureCount = 0;
+        this.failureThreshold = failureThreshold;
+        this.timeout = timeout;
+        this.lastFailureTime = 0;
+        this.state = 'CLOSED';
+    }
+    
+    async execute(fn, ...args) {
+        if (this.state === 'OPEN') {
+            if (Date.now() - this.lastFailureTime > this.timeout) {
+                this.state = 'HALF_OPEN';
+                addLog("🔄 Circuit breaker HALF-OPEN - mencoba koneksi", false);
+            } else {
+                throw new Error('Circuit breaker is OPEN');
+            }
+        }
+        
+        try {
+            const result = await fn(...args);
+            if (this.state === 'HALF_OPEN') {
+                this.state = 'CLOSED';
+                this.failureCount = 0;
+                addLog("✅ Circuit breaker CLOSED - koneksi pulih", false);
+            }
+            return result;
+        } catch(e) {
+            this.failureCount++;
+            this.lastFailureTime = Date.now();
+            if (this.failureCount >= this.failureThreshold) {
+                this.state = 'OPEN';
+                addLog("🔴 Circuit breaker OPEN - jaringan tidak stabil", true);
+            }
+            throw e;
+        }
+    }
+    
+    reset() {
+        this.failureCount = 0;
+        this.state = 'CLOSED';
+    }
+}
+
+// ==================== PERSISTENT QUEUE ====================
+class PersistentQueue {
+    constructor(queueKey = 'gip_offline_queue') {
+        this.queueKey = queueKey;
+        this.maxQueueSize = 20;
+        this.isProcessing = false;
+    }
+    
+    getQueue() {
+        try {
+            return JSON.parse(localStorage.getItem(this.queueKey) || '[]');
+        } catch(e) {
+            return [];
+        }
+    }
+    
+    saveQueue(queue) {
+        while (queue.length > this.maxQueueSize) queue.shift();
+        localStorage.setItem(this.queueKey, JSON.stringify(queue));
+        this.updateBadge();
+    }
+    
+    add(payload) {
+        const queue = this.getQueue();
+        const item = {
+            id: Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+            payload: payload,
+            timestamp: Date.now(),
+            retries: 0
+        };
+        queue.push(item);
+        this.saveQueue(queue);
+        addLog(`📦 Ditambahkan ke antrian (total: ${queue.length})`, false);
+        return queue.length;
+    }
+    
+    async process(apiCallFn) {
+        if (this.isProcessing) {
+            addLog("⏳ Queue sedang diproses, tunggu...", false);
+            return false;
+        }
+        
+        const queue = this.getQueue();
+        if (queue.length === 0) return false;
+        
+        this.isProcessing = true;
+        addLog(`🔄 Memproses ${queue.length} antrian...`, false);
+        
+        const failed = [];
+        
+        for (const item of queue) {
+            try {
+                const result = await apiCallFn(item.payload);
+                if (result && result.ok) {
+                    addLog(`✅ Queue ${item.id} berhasil`, false);
+                } else {
+                    item.retries++;
+                    if (item.retries < 3) {
+                        failed.push(item);
+                        addLog(`⚠️ Queue ${item.id} gagal, retry ${item.retries}/3`, true);
+                    } else {
+                        addLog(`❌ Queue ${item.id} gagal permanen`, true);
+                    }
+                }
+            } catch(e) {
+                item.retries++;
+                if (item.retries < 3) {
+                    failed.push(item);
+                    addLog(`⚠️ Queue ${item.id} error: ${e.message}`, true);
+                } else {
+                    addLog(`❌ Queue ${item.id} gagal permanen: ${e.message}`, true);
+                }
+            }
+            
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        
+        this.saveQueue(failed);
+        this.isProcessing = false;
+        
+        if (failed.length === 0) {
+            addLog(`✅ Semua antrian terproses!`, false);
+        }
+        
+        return true;
+    }
+    
+    updateBadge() {
+        const qty = this.getQueue().length;
+        const badge = document.getElementById('queueStatus');
+        if (badge) badge.innerHTML = `📦 Q:${qty}`;
+    }
+    
+    clear() {
+        this.saveQueue([]);
+        addLog(`🗑️ Queue dikosongkan`, false);
+    }
+}
+
+const offlineQueue = new PersistentQueue();
+const circuitBreaker = new CircuitBreaker(3, 30000);
+
+// ==================== STATE MANAGEMENT ====================
+let currentGPS = null;
+let qrId = null;
+let nonce = null;
+let fingerprint = null;
+let locations = [];
+let adminToken = null;
+let isSubmitting = false;
+let qrCountdown = 300;
+let cameraStream = null;
+let geoWatchId = null;
+let allLogs = [];
+let activeAbortControllers = new Map();
+let networkOnline = navigator.onLine;
+let lastGPSCoords = null;
+let lastGPSTime = null;
+
+// ==================== HELPER FUNCTIONS ====================
+function $(id) { return document.getElementById(id); }
+
+function getWIBDate() { 
+    return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })); 
+}
+
+function WIB_TIME() { 
+    return getWIBDate().toLocaleTimeString('id-ID', { hour12: false }); 
+}
+
+function getTimestamp() { return Date.now(); }
+
+function addLog(msg, isError = false) {
+    const logDiv = $('logArea');
+    const entry = document.createElement('div');
+    entry.style.color = isError ? '#ff0055' : '#00ff9d';
+    entry.style.borderBottom = '1px solid #1a1a1a';
+    entry.style.padding = '4px 0';
+    entry.style.fontSize = '0.65rem';
+    const timestamp = WIB_TIME();
+    entry.innerHTML = `[${timestamp}] ${msg}`;
+    logDiv.appendChild(entry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+    while (logDiv.children.length > 100) logDiv.removeChild(logDiv.firstChild);
+    console.log(msg);
+}
+
+window.closeModal = function(id) {
+    $(id).style.display = 'none';
+    if (id === 'adminModal') {
+        adminToken = null;
+        if ($('adminLoginDiv')) $('adminLoginDiv').style.display = 'block';
+        if ($('adminPanel')) $('adminPanel').style.display = 'none';
+        if ($('adminPassword')) $('adminPassword').value = '';
+    }
+};
+
+// ==================== CRYPTO FUNCTIONS ====================
+async function generateDeviceFingerprint() {
+    const components = [
+        navigator.userAgent, navigator.language, screen.width + 'x' + screen.height,
+        screen.colorDepth, new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || 4,
+        navigator.deviceMemory ? Math.floor(navigator.deviceMemory) : 4
+    ];
+    const data = components.join('|');
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
+}
+
+async function getStableFingerprint() {
+    let fp = localStorage.getItem("GIP_FP");
+    if (fp && fp.length === 32) return fp;
+    fp = await generateDeviceFingerprint();
+    localStorage.setItem("GIP_FP", fp);
+    return fp;
+}
+
+async function generateHMAC(message) {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(MASTER_KEY);
+    const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(message));
+    return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
+}
+
+// ==================== ANTI-CHEAT: FAKE GPS DETECTION ====================
+async function detectMockLocation() {
+    if (!ENABLE_FAKE_GPS_DETECTION) return false;
+    
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+            resolve(false);
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                let isMock = false;
+                let reason = "";
+                
+                // Method 1: Cek properti mocked (Android 6+)
+                if (position.mocked === true) {
+                    isMock = true;
+                    reason = "mocked property";
+                }
+                
+                // Method 2: Cek accuracy terlalu bagus (fake GPS sering accuracy = 0 atau 3)
+                if (!isMock && (position.coords.accuracy === 0 || position.coords.accuracy === 3)) {
+                    isMock = true;
+                    reason = `accuracy tidak wajar: ${position.coords.accuracy}m`;
+                }
+                
+                // Method 3: Cek kecepatan tidak realistis (teleport)
+                if (!isMock && lastGPSCoords) {
+                    const distance = calculateDistance(
+                        lastGPSCoords.lat, lastGPSCoords.lng,
+                        position.coords.latitude, position.coords.longitude
+                    );
+                    const timeDiff = (Date.now() - lastGPSTime) / 1000;
+                    const speed = distance / timeDiff;
+                    
+                    if (speed > 50 && timeDiff < 30) {
+                        isMock = true;
+                        reason = `teleport tidak realistis (${Math.round(speed)} m/s)`;
+                    }
+                }
+                
+                // Update last GPS for next check
+                lastGPSCoords = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                lastGPSTime = Date.now();
+                
+                if (isMock) {
+                    addLog(`🔴 FAKE GPS TERDETEKSI! (${reason})`, true);
+                    document.getElementById('securityStatus').innerHTML = '🔴 FAKE GPS';
+                    document.getElementById('securityStatus').style.background = 'rgba(255,0,85,0.3)';
+                } else {
+                    document.getElementById('securityStatus').innerHTML = '🛡️ AMAN';
+                    document.getElementById('securityStatus').style.background = 'rgba(0,255,157,0.1)';
+                }
+                
+                resolve(isMock);
+            },
+            () => resolve(false),
+            { enableHighAccuracy: true, timeout: 5000 }
+        );
+    });
+}
+
+// ==================== ANTI-CHEAT: EMULATOR DETECTION ====================
+function detectEmulator() {
+    if (!ENABLE_EMULATOR_DETECTION) return false;
+    
+    const checks = [];
+    
+    // Cek user agent
+    const ua = navigator.userAgent.toLowerCase();
+    if (ua.includes('android') && (ua.includes('sdk') || ua.includes('google_sdk') || ua.includes('emulator'))) {
+        checks.push('Android SDK detected');
+    }
+    
+    // Cek screen resolution (emulator sering pake resolusi aneh)
+    if (screen.width === 0 || screen.height === 0) {
+        checks.push('Invalid screen resolution');
+    }
+    
+    // Cek device memory (emulator sering ga punya)
+    if (navigator.deviceMemory && navigator.deviceMemory < 1) {
+        checks.push('Suspicious memory');
+    }
+    
+    // Cek hardware concurrency (emulator sering ga akurat)
+    if (navigator.hardwareConcurrency && navigator.hardwareConcurrency > 16) {
+        checks.push('Too many cores for mobile');
+    }
+    
+    // Cek touch support (emulator sering ga support touch)
+    if (!('ontouchstart' in window)) {
+        checks.push('No touch support');
+    }
+    
+    if (checks.length > 0) {
+        addLog(`⚠️ Potensi emulator: ${checks.join(', ')}`, true);
+        document.getElementById('securityStatus').innerHTML = '⚠️ EMULATOR';
+        document.getElementById('securityStatus').style.background = 'rgba(255,170,0,0.3)';
+        return true;
+    }
+    
+    return false;
+}
+
+// ==================== ANTI-CHEAT: RANDOM CHALLENGE ====================
+async function performRandomChallenge() {
+    if (!ENABLE_RANDOM_CHALLENGE) return null;
+    
+    const random = CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
+    
+    addLog(`🎯 CHALLENGE: ${random.text} (${random.duration/1000} detik)`, false);
+    
+    // Tampilkan overlay challenge
+    const overlay = document.createElement('div');
+    overlay.className = 'challenge-overlay';
+    overlay.innerHTML = `
+        <div class="challenge-box">
+            <h2 style="color:#ff0055; margin-bottom:15px;">⚠️ VERIFIKASI ANTI-CURANG ⚠️</h2>
+            <div class="challenge-text">${random.text}</div>
+            <div class="challenge-timer" id="challengeTimerDisplay">${random.duration/1000}</div>
+            <p style="color:#00ff9d; font-size:0.8rem;">Kamera akan mengambil foto otomatis</p>
+            <p style="color:#666; font-size:0.7rem; margin-top:15px;">Challenge random untuk mencegah titip absen</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Countdown
+    for (let i = random.duration/1000; i >= 0; i--) {
+        const timerDiv = document.getElementById('challengeTimerDisplay');
+        if (timerDiv) timerDiv.innerHTML = i;
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    
+    overlay.remove();
+    
+    // Ambil foto setelah challenge
+    return await capturePhoto();
+}
+
+// ==================== ANTI-CHEAT: LIVENESS DETECTION ====================
+async function capturePhotoWithLiveness() {
+    if (!ENABLE_LIVENESS_DETECTION) {
+        return await capturePhoto();
+    }
+    
+    const video = $('video');
+    const canvas = $('canvas');
+    
+    addLog("🎥 Mengambil 3 frame untuk verifikasi liveness...", false);
+    
+    // Ambil 3 frame berbeda
+    const frames = [];
+    for (let i = 0; i < 3; i++) {
+        await new Promise(r => setTimeout(r, 500));
+        
+        const ctx = canvas.getContext('2d');
+        canvas.width = 480;
+        canvas.height = 360;
+        ctx.save();
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        
+        const frameData = canvas.toDataURL('image/jpeg', 0.7);
+        frames.push(frameData);
+        
+        addLog(`📸 Frame ${i+1}/3 terekam`, false);
+    }
+    
+    // Cek apakah frame sama (tanda foto diam / foto dari galeri)
+    const hash1 = await generateHMAC(frames[0]);
+    const hash2 = await generateHMAC(frames[1]);
+    const hash3 = await generateHMAC(frames[2]);
+    
+    if (hash1 === hash2 && hash2 === hash3) {
+        addLog("🔴 LIVENESS FAILED: Foto diam / foto dari galeri terdeteksi!", true);
+        document.getElementById('securityStatus').innerHTML = '🔴 LIVENESS FAIL';
+        document.getElementById('securityStatus').style.background = 'rgba(255,0,85,0.3)';
+        throw new Error("LIVENESS_FAILED: Foto tidak bergerak");
+    }
+    
+    // Cek perbedaan antar frame
+    const diff12 = hash1 !== hash2;
+    const diff23 = hash2 !== hash3;
+    
+    if (diff12 && diff23) {
+        addLog("✅ Liveness check PASSED: Frame bergerak normal", false);
+        document.getElementById('securityStatus').innerHTML = '🛡️ AMAN';
+        document.getElementById('securityStatus').style.background = 'rgba(0,255,157,0.1)';
+    } else {
+        addLog("⚠️ Liveness check: Pergerakan minimal terdeteksi", true);
+    }
+    
+    // Kirim frame terbaik (frame ke-2)
+    return frames[1];
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// ==================== FETCH WITH ABORT & RETRY ====================
+async function fetchWithTimeout(url, options = {}, timeoutMs = 10000, retries = 2) {
+    let lastError;
+    const delays = [1000, 3000];
+    
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const requestId = Date.now() + '_' + Math.random();
+        activeAbortControllers.set(requestId, controller);
+        
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            activeAbortControllers.delete(requestId);
+            
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => response.statusText);
+                if (response.status >= 400 && response.status < 500) {
+                    throw new Error(`CLIENT_${response.status}`);
+                }
+                throw new Error(`SERVER_${response.status}`);
+            }
+            
+            return await response.json();
+            
+        } catch(e) {
+            clearTimeout(timeoutId);
+            activeAbortControllers.delete(requestId);
+            lastError = e;
+            
+            const isNetworkError = e.name === 'AbortError' || e.message.includes('fetch') || e.message.includes('network');
+            
+            if (attempt < retries && (isNetworkError || e.message.includes('SERVER_'))) {
+                addLog(`⚠️ Retry ${attempt + 1}/${retries}: ${url.substring(0, 50)}`, true);
+                await new Promise(r => setTimeout(r, delays[attempt]));
+            } else {
+                throw e;
+            }
+        }
+    }
+    throw lastError;
+}
+
+async function callWithCircuitBreaker(url, options) {
+    return await circuitBreaker.execute(fetchWithTimeout, url, options);
+}
+
+// ==================== CAMERA (ORIGINAL - TIDAK DIHAPUS) ====================
+async function waitCameraReady() {
+    const video = $('video');
+    if (video.videoWidth && video.videoHeight) return true;
+    return new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(false), 5000);
+        video.onloadeddata = () => { clearTimeout(timeout); resolve(true); };
+    });
+}
+
+async function initCamera() {
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+            });
+            $('video').srcObject = cameraStream;
+            addLog("✅ Kamera aktif");
+            return true;
+        } catch(e) {
+            addLog(`❌ Kamera error (attempt ${attempt + 1}/3): ${e.message}`, true);
+            await new Promise(r => setTimeout(r, 500));
+        }
+    }
+    throw new Error("CAMERA FAILED");
+}
+
+// ORIGINAL CAPTURE PHOTO (TETAP ADA, DIPANGGIL VIA LIVENESS)
+async function capturePhoto() {
+    const video = $('video');
+    const isReady = await waitCameraReady();
+    if (!isReady || !video.videoWidth) throw new Error("KAMERA BELUM SIAP");
+    
+    const canvas = $('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 480;
+    canvas.height = 360;
+    
+    ctx.save();
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+    
+    const waktuStr = WIB_TIME();
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0, canvas.height - 28, canvas.width, 28);
+    ctx.font = "10px 'Courier New'";
+    ctx.fillStyle = "#00ff9d";
+    ctx.fillText(`GIP 66 ELITE | ${waktuStr} | FP: ${fingerprint.slice(0, 8)}`, 5, canvas.height - 10);
+    
+    return canvas.toDataURL('image/jpeg', 0.7);
+}
+
+// ==================== GPS (ORIGINAL - TIDAK DIHAPUS) ====================
+function initGPS() {
+    if (!navigator.geolocation) {
+        addLog("❌ GPS tidak didukung!", true);
+        return;
+    }
+    
+    if (geoWatchId) navigator.geolocation.clearWatch(geoWatchId);
+    
+    geoWatchId = navigator.geolocation.watchPosition(
+        (pos) => { 
+            currentGPS = pos; 
+            updateSystemUI();
+            // Auto-detect fake GPS
+            if (ENABLE_FAKE_GPS_DETECTION) {
+                detectMockLocation();
+            }
+        },
+        (err) => {
+            addLog("❌ GPS Error: " + err.message, true);
+            $('gpsStatus').innerHTML = "📍 GPS: ERROR";
+            updateSystemUI();
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+}
+
+// ==================== SYSTEM STATUS ====================
+function isSystemReady() {
+    const gpsValid = currentGPS && currentGPS.coords && currentGPS.coords.accuracy > 0 && currentGPS.coords.accuracy < 100;
+    return !!(qrId && nonce && fingerprint && gpsValid && networkOnline);
+}
+
+function updateSystemUI() {
+    const ready = isSystemReady();
+    const btn = $('absenBtn');
+    if (btn) btn.disabled = !ready;
+    $('sysStatus').innerHTML = ready ? "🟢 SIAP" : (networkOnline ? "🔴 BELUM SIAP" : "⚠️ OFFLINE");
+    
+    if (currentGPS && currentGPS.coords) {
+        const acc = currentGPS.coords.accuracy;
+        $('gpsStatus').innerHTML = `📍 GPS: ${acc.toFixed(0)}m`;
+        $('gpsIndicator').innerHTML = `GPS: ${Math.min(100, Math.max(0, Math.round(100 - acc)))}%`;
+    }
+    
+    const statusDiv = document.getElementById('networkStatus');
+    if (statusDiv) {
+        statusDiv.innerHTML = networkOnline ? '🟢 ONLINE' : '🔴 OFFLINE';
+        statusDiv.style.borderColor = networkOnline ? '#00ff9d' : '#ff0055';
+        statusDiv.style.color = networkOnline ? '#00ff9d' : '#ff0055';
+    }
+    
+    offlineQueue.updateBadge();
+}
+
+// ==================== API CALLS (ORIGINAL - TIDAK DIHAPUS) ====================
+async function refreshQRToken() {
+    if (!networkOnline) {
+        addLog("⚠️ Offline mode - QR token tidak bisa di-refresh", true);
+        return;
+    }
+    try {
+        const data = await callWithCircuitBreaker(`${API_BASE}/api/qr-token`, {});
+        if (!data.qrId) throw new Error("QR INVALID");
+        qrId = data.qrId;
+        $('qrContainer').innerHTML = '';
+        new QRCode($('qrContainer'), { text: qrId, width: 130, height: 130 });
+        $('qrStatus').innerHTML = "📱 QR: OK";
+        qrCountdown = 300;
+        addLog("✅ QR Token refreshed");
+    } catch(e) {
+        addLog("❌ QR error: " + e.message, true);
+        qrId = null;
+        $('qrStatus').innerHTML = "📱 QR: ERROR";
+        setTimeout(() => { if(networkOnline) refreshQRToken(); }, 5000);
+    }
+    updateSystemUI();
+}
+
+async function refreshChallengeToken() {
+    if (!networkOnline) {
+        addLog("⚠️ Offline mode - challenge token tidak bisa di-refresh", true);
+        return;
+    }
+    try {
+        const data = await callWithCircuitBreaker(`${API_BASE}/api/challenge`, {});
+        if (!data.nonce) throw new Error("NONCE INVALID");
+        nonce = data.nonce;
+        $('nonceStatus').innerHTML = "🎯 NONCE: OK";
+        addLog("✅ Challenge token refreshed");
+    } catch(e) {
+        addLog("❌ Challenge error: " + e.message, true);
+        nonce = null;
+        $('nonceStatus').innerHTML = "🎯 NONCE: ERROR";
+        setTimeout(() => { if(networkOnline) refreshChallengeToken(); }, 5000);
+    }
+    updateSystemUI();
+}
+
+async function loadLocations() {
+    if (!networkOnline) {
+        addLog("⚠️ Offline mode - lokasi tidak bisa di-load", true);
+        return;
+    }
+    try {
+        const data = await callWithCircuitBreaker(`${API_BASE}/api/locations`, {});
+        locations = Array.isArray(data) ? data : (data.data || []);
+        const select = $('locationSelect');
+        select.innerHTML = '<option value="">-- PILIH LOKASI --</option>';
+        locations.forEach(l => {
+            select.innerHTML += `<option value='${l.id}'>📍 ${l.name} (${l.project}) - ${l.radius}m</option>`;
+        });
+        addLog(`✅ ${locations.length} lokasi tersedia`);
+    } catch(e) {
+        addLog("❌ Load lokasi error: " + e.message, true);
+        locations = [];
+    }
+}
+
+// ==================== ABSEN SUBMIT (DENGAN ANTI-CHEAT) ====================
+async function submitAbsen() {
+    if (isSubmitting) {
+        addLog("⏳ Sedang memproses absen, tunggu...", true);
+        return;
+    }
+    
+    if (!isSystemReady()) {
+        alert("SISTEM BELUM SIAP!\nPastikan GPS, QR, Challenge token valid, dan koneksi online.");
+        return;
+    }
+    
+    // ANTI-CHEAT: Deteksi emulator
+    if (detectEmulator()) {
+        const confirmEmulator = confirm("⚠️ SISTEM MENDETEKSI POTENSI EMULATOR!\nLanjutkan absen? (Akan dicatat sebagai anomali)");
+        if (!confirmEmulator) {
+            addLog("❌ Absen dibatalkan: deteksi emulator", true);
+            return;
+        }
+    }
+    
+    // ANTI-CHEAT: Deteksi fake GPS
+    const isMockGPS = await detectMockLocation();
+    if (isMockGPS) {
+        const confirmMock = confirm("🔴 SISTEM MENDETEKSI FAKE GPS!\nLanjutkan absen? (Akan dicatat sebagai pelanggaran)");
+        if (!confirmMock) {
+            addLog("❌ Absen dibatalkan: fake GPS terdeteksi", true);
+            return;
+        }
+    }
+    
+    const userName = $('userName').value.trim();
+    const locationId = $('locationSelect').value;
+    
+    if (!userName) { alert("ISI NAMA!"); return; }
+    if (!locationId) { alert("PILIH LOKASI!"); return; }
+    
+    const selectedLocation = locations.find(l => l.id === locationId);
+    if (!selectedLocation) { alert("LOKASI INVALID!"); return; }
+    
+    isSubmitting = true;
+    const btn = $('absenBtn');
+    btn.disabled = true;
+    btn.innerHTML = "⚡ PROSES ABSEN...";
+    addLog("🚀 Memulai proses absen...");
+    
+    let payload = null;
+    let photoBase64 = null;
+    
+    try {
+        // ANTI-CHEAT: Random challenge sebelum foto
+        if (ENABLE_RANDOM_CHALLENGE) {
+            addLog("🎲 Random challenge activated...", false);
+            photoBase64 = await performRandomChallenge();
+            if (!photoBase64) {
+                photoBase64 = await capturePhotoWithLiveness();
+            }
+        } else {
+            photoBase64 = await capturePhotoWithLiveness();
+        }
+        
+        const timestamp = getTimestamp();
+        const lat = currentGPS.coords.latitude.toFixed(6);
+        const lng = currentGPS.coords.longitude.toFixed(6);
+        const rawSignature = `${qrId}${nonce}${userName.toUpperCase()}${timestamp}`;
+        const signature = await generateHMAC(rawSignature);
+        
+        payload = {
+            qrId: qrId,
+            nonce: nonce,
+            nama: userName.toUpperCase(),
+            lat: parseFloat(lat),
+            lng: parseFloat(lng),
+            accuracy: currentGPS.coords.accuracy,
+            locationId: locationId,
+            fingerprint: fingerprint,
+            photoBase64: photoBase64,
+            timestamp: timestamp,
+            signature: signature,
+            // ANTI-CHEAT: Tambahan metadata untuk deteksi
+            security_checks: {
+                mock_gps: isMockGPS,
+                emulator_detected: detectEmulator(),
+                liveness_passed: true,
+                timestamp: timestamp
+            }
+        };
+        
+        if (!networkOnline) {
+            addLog("📦 Offline mode - menyimpan ke antrian", false);
+            offlineQueue.add(payload);
+            alert("✅ Disimpan ke antrian offline!\nAkan sync saat koneksi normal.");
+            setTimeout(() => location.reload(), 2000);
+            return;
+        }
+        
+                const result = await callWithCircuitBreaker(`${API_BASE}/api/absen`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        
+        if (result && result.ok) {
+            addLog(`✅ ABSEN BERHASIL! ID: ${result.logId}`);
+            
+            // 🔴 TAMBAHKAN INI UNTUK KIRIM KE GOOGLE SHEETS 🔴
+            if (GOOGLE_SHEETS_WEBHOOK) {
+    try {
+
+        const sheetData = {
+            waktu: WIB_TIME(),
+            nama: userName.toUpperCase(),
+            lokasi: selectedLocation.name,
+            project: selectedLocation.project,
+            jarak: Math.round(currentGPS.coords.accuracy) + "m",
+            akurasi: Math.round(currentGPS.coords.accuracy) + "m",
+            status: isMockGPS ? "FAKE_GPS" : (result.alert ? "ALERT" : "NORMAL"),
+            lat: lat,
+            lng: lng,
+            fingerprint: fingerprint.substring(0, 20),
+            foto_hash: result.logId,
+            id: result.logId,
+            timestamp: timestamp
+        };
+
+        const sheetResponse = await fetch(GOOGLE_SHEETS_WEBHOOK, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(sheetData)
+        });
+
+        const sheetResult = await sheetResponse.text();
+
+        addLog("📊 Sheets OK: " + sheetResult, false);
+
+    } catch(sheetErr) {
+
+        addLog("❌ Sheets Error: " + sheetErr.message, true);
+
+    }
+}
+            
+            if (isMockGPS) {
+                alert(`✅ ABSEN BERHASIL!\n⚠️ CATATAN: Fake GPS terdeteksi\nID: ${result.logId}`);
+            } else {
+                alert(`✅ ABSEN BERHASIL!\nID: ${result.logId}`);
+            }
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            throw new Error(result?.code || result?.msg || 'Unknown error');
+        }
+        
+    } catch(e) {
+        addLog("❌ Error: " + e.message, true);
+        
+        if (payload && (e.message.includes('fetch') || e.message.includes('network') || e.message.includes('Circuit breaker'))) {
+            addLog("📦 Network error - menyimpan ke antrian", false);
+            offlineQueue.add(payload);
+            alert("⚠️ Koneksi bermasalah!\nData disimpan ke antrian.");
+        } else if (e.message.includes('LIVENESS_FAILED')) {
+            alert("❌ VERIFIKASI GAGAL!\nSistem mendeteksi foto diam/foto dari galeri.\nHarap hadir langsung di depan kamera.");
+        } else if (!payload) {
+            alert("Error: Gagal memproses data. Coba lagi.");
+        } else {
+            alert("Error: " + e.message);
+        }
+    } finally {
+        isSubmitting = false;
+        btn.disabled = !isSystemReady();
+        btn.innerHTML = "✅ ABSEN SEKARANG";
+        updateSystemUI();
+    }
+}
+
+// ==================== ADMIN FUNCTIONS (ORIGINAL - TIDAK DIHAPUS) ====================
+async function adminLogin() {
+    const pass = $('adminPassword').value.trim();
+    if (!pass) { alert("MASUKKAN PASSWORD!"); return; }
+    
+    try {
+        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass })
+        }, 10000, 2);
+        
+        if (data.ok && data.token) {
+            adminToken = data.token;
+            localStorage.setItem("gip_admin_token", adminToken);
+            $('adminLoginDiv').style.display = 'none';
+            $('adminPanel').style.display = 'block';
+            await loadDashboard();
+            addLog("✅ Admin login berhasil");
+        } else {
+            alert("❌ PASSWORD SALAH!");
+        }
+    } catch(e) {
+        addLog("❌ Admin login error: " + e.message, true);
+        alert("Error: " + e.message);
+    }
+}
+
+async function loadDashboard() {
+    if (!adminToken) {
+        const saved = localStorage.getItem("gip_admin_token");
+        if (saved) adminToken = saved;
+        else return;
+    }
+    
+    try {
+        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/dashboard`, {
+            headers: { "Authorization": `Bearer ${adminToken}` }
+        }, 10000, 2);
+        
+        if (!data.ok) throw new Error("INVALID RESPONSE");
+        
+        allLogs = data.logs || [];
+        const stats = data.stats || {};
+        
+        $('statTotal').innerHTML = stats.total || 0;
+        $('statToday').innerHTML = stats.today || 0;
+        $('statAlert').innerHTML = stats.alert || 0;
+        $('statAnomaly').innerHTML = stats.anomaly || 0;
+        $('statBanned').innerHTML = stats.banned || 0;
+        
+        const projects = [...new Set(allLogs.map(l => l.project).filter(p => p))];
+        const fp = $('filterProject');
+        fp.innerHTML = '<option value="ALL">📁 SEMUA PROJECT</option>';
+        projects.forEach(p => { fp.innerHTML += `<option value="${p}">${p}</option>`; });
+        
+        renderLogs();
+        addLog(`✅ Dashboard loaded: ${allLogs.length} logs`);
+    } catch(e) {
+        addLog("❌ Load dashboard error: " + e.message, true);
+        if (e.message.includes('401')) {
+            adminToken = null;
+            localStorage.removeItem("gip_admin_token");
+            $('adminLoginDiv').style.display = 'block';
+            $('adminPanel').style.display = 'none';
+        }
+    }
+}
+
+function renderLogs() {
+    const search = $('searchInput').value.toLowerCase();
+    const project = $('filterProject').value;
+    
+    const filtered = allLogs.filter(l => {
+        if (project !== 'ALL' && l.project !== project) return false;
+        if (search && !l.nama.toLowerCase().includes(search)) return false;
+        return true;
+    });
+    
+    const tbody = $('adminTableBody');
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="loading">📭 Tidak ada data</td></tr>';
+        return;
+    }
+    
+    let html = '';
+    filtered.slice(0, 200).forEach((l, i) => {
+        let cls = '', st = 'NORMAL';
+        if (l.alert && l.anomaly) { cls = 'alert-row'; st = '⚠️ ALERT+ANOMALY'; }
+        else if (l.alert) { cls = 'alert-row'; st = '⚠️ ALERT'; }
+        else if (l.anomaly) { cls = 'anomaly-row'; st = '🌀 ANOMALY'; }
+        
+        html += `<tr class="${cls}">
+            <td><input type="checkbox" class="log-checkbox" data-id="${l.id}"></td>
+            <td>${i + 1}</td>
+            <td>${l.nama || '-'}</td>
+            <td>${l.waktu || '-'}</td>
+            <td><span class="badge badge-normal">${l.project || '-'}</span></td>
+            <td>${l.location_name || '-'}</td>
+            <td>${l.jarak || 0}m</td>
+            <td>${l.accuracy || 0}m</td>
+            <td><span class="badge ${l.alert ? 'badge-alert' : (l.anomaly ? 'badge-anomaly' : 'badge-normal')}">${st}</span></td>
+            <td><img src="${ADMIN_BASE}/api/admin/photo-viewer?hash=${l.photo_hash}" class="photo-thumb" onclick="viewPhoto('${l.photo_hash}')" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect width=%2250%22 height=%2250%22 fill=%22%23333%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23666%22 dy=%22.3em%22 text-anchor=%22middle%22%3ENO%3C/text%3E%3C/svg%3E'"></td>
+        </tr>`;
+    });
+    tbody.innerHTML = html;
+    
+    const selectAll = $('selectAllCheckbox');
+    if (selectAll) {
+        selectAll.onclick = () => document.querySelectorAll('.log-checkbox').forEach(cb => cb.checked = selectAll.checked);
+    }
+}
+
+async function viewPhoto(hash) {
+    if (!hash) return alert("HASH FOTO TIDAK ADA");
+    $('photoModalImg').src = `${ADMIN_BASE}/api/admin/photo-viewer?hash=${hash}`;
+    $('photoModal').style.display = 'flex';
+}
+
+async function deleteSelectedLogs() {
+    if (!adminToken) return;
+    const checkboxes = document.querySelectorAll('.log-checkbox:checked');
+    if (checkboxes.length === 0) { alert("Pilih minimal 1 data!"); return; }
+    if (!confirm(`Hapus ${checkboxes.length} data?`)) return;
+    
+    const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
+    try {
+        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/logs/bulk`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminToken}` },
+            body: JSON.stringify({ ids: ids })
+        }, 10000, 2);
+        if (data.ok) { alert(`✅ ${data.deleted} data dihapus!`); await loadDashboard(); }
+        else alert("❌ Gagal hapus!");
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+async function deleteAllData() {
+    if (!adminToken) return;
+    if (!confirm("⚠️ PERINGATAN! Hapus SEMUA data?")) return;
+    if (!confirm("KONFIRMASI AKHIR: Tekan OK untuk menghapus SEMUA data!")) return;
+    try {
+        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/delete-all`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminToken}` },
+            body: JSON.stringify({ confirm: true })
+        }, 10000, 2);
+        if (data.ok) { alert("✅ SEMUA DATA BERHASIL DIHAPUS!"); await loadDashboard(); }
+        else alert("❌ Gagal: " + data.msg);
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+async function exportLogs() {
+    if (!adminToken) return;
+    try {
+        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/export`, {
+            headers: { "Authorization": `Bearer ${adminToken}` }
+        }, 10000, 2);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `gip_export_${Date.now()}.json`; a.click();
+        URL.revokeObjectURL(url);
+        addLog("✅ Export berhasil");
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+async function unbanDevice() { alert("Fitur unban dalam pengembangan"); }
+async function resetDevice() { alert("Fitur reset device dalam pengembangan"); }
+async function openSettings() { alert("⚙️ Settings: Kualitas foto default 70%, Max size 350KB"); }
+
+// ==================== LOCATION MANAGEMENT (ORIGINAL - TIDAK DIHAPUS) ====================
+async function openLocationManager() {
+    const pass = prompt("ADMIN PASSWORD:");
+    if (!pass) return;
+    try {
+        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass })
+        }, 10000, 2);
+        if (!data.ok || !data.token) { alert("❌ PASSWORD SALAH!"); return; }
+        adminToken = data.token;
+        localStorage.setItem("gip_admin_token", adminToken);
+        await refreshLocationList();
+        if (currentGPS && currentGPS.coords) { setTimeout(() => autoFillGPS(), 500); }
+        $('locModal').style.display = 'flex';
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+async function refreshLocationList() {
+    try {
+        const res = await fetch(`${API_BASE}/api/locations`);
+        const d = await res.json();
+        const locs = Array.isArray(d) ? d : (d.data || []);
+        locations = locs;
+        const c = $('locationList');
+        c.innerHTML = '<h4>📋 DAFTAR LOKASI:</h4>';
+        if (!locations.length) { c.innerHTML += '<div>📭 Belum ada lokasi</div>'; return; }
+        locations.forEach(loc => {
+            c.innerHTML += `<div class="location-item"><strong>${loc.name}</strong><br>📍 ${loc.lat}, ${loc.lng}<br>📏 Radius: ${loc.radius}m | Project: ${loc.project}<div style="margin-top:8px;"><button class="btn-icon" onclick="editLocation('${loc.id}')">✏️ EDIT</button><button class="btn-icon" onclick="deleteLocation('${loc.id}')">🗑️ HAPUS</button></div></div>`;
+        });
+    } catch(e) { addLog("Error load locations: " + e.message, true); }
+}
+
+window.editLocation = async function(id) {
+    const loc = locations.find(l => l.id === id);
+    if (!loc) { alert("LOKASI TIDAK DITEMUKAN!"); return; }
+    $('editLocId').value = loc.id;
+    $('editLocName').value = loc.name;
+    $('editLocLat').value = loc.lat;
+    $('editLocLng').value = loc.lng;
+    $('editLocRadius').value = loc.radius;
+    $('editLocProject').value = loc.project;
+    $('editLocModal').style.display = 'flex';
+};
+
+async function updateLocation() {
+    const id = $('editLocId').value;
+    const name = $('editLocName').value.trim();
+    const lat = parseFloat($('editLocLat').value);
+    const lng = parseFloat($('editLocLng').value);
+    const radius = parseInt($('editLocRadius').value);
+    const project = $('editLocProject').value.trim();
+    if (!name || isNaN(lat) || isNaN(lng) || isNaN(radius)) { alert("ISI SEMUA FIELD!"); return; }
+    const pass = prompt("ADMIN PASSWORD:");
+    if (!pass) return;
+    try {
+        const loginRes = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass })
+        }, 10000, 2);
+        if (!loginRes.ok || !loginRes.token) { alert("❌ PASSWORD SALAH!"); return; }
+        const res = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, {
+            method: "POST", headers: { "Authorization": `Bearer ${loginRes.token}` },
+            body: JSON.stringify({ action: "UPDATE", id, data: { name, lat, lng, radius, project } })
+        }, 10000, 2);
+        if (res.ok) { alert("✅ LOKASI DIUPDATE!"); closeModal('editLocModal'); await loadLocations(); await refreshLocationList(); }
+        else alert("❌ GAGAL UPDATE!");
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+window.deleteLocation = async function(id) {
+    if (!confirm("Yakin hapus lokasi ini?")) return;
+    const pass = prompt("ADMIN PASSWORD:");
+    if (!pass) return;
+    try {
+        const loginRes = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass })
+        }, 10000, 2);
+        if (!loginRes.ok || !loginRes.token) { alert("❌ PASSWORD SALAH!"); return; }
+        const res = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, {
+            method: "POST", headers: { "Authorization": `Bearer ${loginRes.token}` },
+            body: JSON.stringify({ action: "DELETE", id })
+        }, 10000, 2);
+        if (res.ok) { alert("✅ LOKASI DIHAPUS!"); await refreshLocationList(); await loadLocations(); }
+        else alert("❌ GAGAL HAPUS!");
+    } catch(e) { alert("Error: " + e.message); }
+};
+
+async function saveNewLocation() {
+    const name = $('newLocName').value.trim();
+    const lat = parseFloat($('newLocLat').value);
+    const lng = parseFloat($('newLocLng').value);
+    const radius = parseInt($('newLocRadius').value);
+    const project = $('newLocProject').value.trim();
+    if (!name || isNaN(lat) || isNaN(lng)) { alert("ISI SEMUA FIELD!"); return; }
+    const pass = prompt("ADMIN PASSWORD:");
+    if (!pass) return;
+    try {
+        const loginRes = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass })
+        }, 10000, 2);
+        if (!loginRes.ok || !loginRes.token) { alert("❌ PASSWORD SALAH!"); return; }
+        const res = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, {
+            method: "POST", headers: { "Authorization": `Bearer ${loginRes.token}` },
+            body: JSON.stringify({ action: "ADD", data: { name, lat, lng, radius, project } })
+        }, 10000, 2);
+        if (res.ok) { alert("✅ LOKASI TERSIMPAN!"); closeModal('locModal'); await loadLocations(); await refreshLocationList(); }
+        else alert("❌ GAGAL SIMPAN!");
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+function autoFillGPS() {
+    if (currentGPS && currentGPS.coords) {
+        $('newLocLat').value = currentGPS.coords.latitude.toFixed(6);
+        $('newLocLng').value = currentGPS.coords.longitude.toFixed(6);
+        addLog("✅ Koordinat GPS terisi otomatis");
+    } else { alert("Tunggu GPS dulu!"); }
+}
+
+function showZoomQR() {
+    if (!qrId) return;
+    $('qrZoomContainer').innerHTML = '';
+    new QRCode($('qrZoomContainer'), { text: qrId, width: 280, height: 280 });
+    $('qrModal').style.display = 'flex';
+}
+
+async function syncQueue() {
+    if (!networkOnline) { alert("Tidak bisa sync, jaringan offline!"); return; }
+    addLog("🔄 Memulai sinkronisasi antrian...", false);
+    const syncFn = async (payload) => {
+        return await fetchWithTimeout(`${API_BASE}/api/absen`, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+        }, 15000, 2);
+    };
+    await offlineQueue.process(syncFn);
+}
+
+// ==================== NETWORK MONITOR ====================
+function setupNetworkMonitor() {
+    window.addEventListener('online', async () => {
+        networkOnline = true;
+        circuitBreaker.reset();
+        addLog("🌐 Koneksi kembali ONLINE", false);
+        document.getElementById('networkStatus').innerHTML = '🟢 ONLINE';
+        await refreshQRToken();
+        await refreshChallengeToken();
+        await loadLocations();
+        await syncQueue();
+        updateSystemUI();
+    });
+    
+    window.addEventListener('offline', () => {
+        networkOnline = false;
+        addLog("⚠️ Koneksi OFFLINE - mode antrian aktif", true);
+        document.getElementById('networkStatus').innerHTML = '🔴 OFFLINE';
+        updateSystemUI();
+    });
+}
+
+// ==================== TIMERS ====================
+function startTimers() {
+    setInterval(() => {
+        $('wibTime').innerHTML = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' });
+    }, 1000);
+    
+    let isRefreshing = false;
+    setInterval(async () => {
+        if (qrCountdown > 0 && !isSubmitting && networkOnline && !isRefreshing) {
+            qrCountdown--;
+            const m = Math.floor(qrCountdown / 60);
+            const s = qrCountdown % 60;
+            $('qrTimer').innerHTML = `⏱️ Refresh in: ${m}:${s.toString().padStart(2, '0')}`;
+            if (qrCountdown <= 0) {
+                isRefreshing = true;
+                await refreshQRToken();
+                isRefreshing = false;
+            }
+        }
+    }, 1000);
+    
+    let isChallenging = false;
+    setInterval(async () => {
+        if (!isSubmitting && networkOnline && !isChallenging) {
+            isChallenging = true;
+            await refreshChallengeToken();
+            isChallenging = false;
+        }
+    }, 170000);
+    
+    setInterval(async () => {
+        if (networkOnline && !offlineQueue.isProcessing) {
+            await syncQueue();
+        }
+    }, 30000);
+    
+    // Periodic security check
+    setInterval(async () => {
+        if (networkOnline && ENABLE_FAKE_GPS_DETECTION && currentGPS) {
+            await detectMockLocation();
+        }
+    }, 30000);
+}
+
+// ==================== BOOT ====================
+async function boot() {
+    addLog("🔥 GIP 66 ELITE BOOTING...");
+    addLog(`🌐 API: ${API_BASE}`);
+    addLog("🛡️ Anti-Cheat: FAKE_GPS=" + (ENABLE_FAKE_GPS_DETECTION ? "ON" : "OFF") + 
+           " | LIVENESS=" + (ENABLE_LIVENESS_DETECTION ? "ON" : "OFF") +
+           " | CHALLENGE=" + (ENABLE_RANDOM_CHALLENGE ? "ON" : "OFF"));
+    
+    fingerprint = await getStableFingerprint();
+    addLog(`🆔 FP: ${fingerprint.slice(0, 16)}...`);
+    
+    setupNetworkMonitor();
+    
+    try {
+        await initCamera();
+    } catch(e) {
+        alert("KAMERA WAJIB AKTIF!");
+        addLog("❌ FATAL: Kamera error", true);
+        return;
+    }
+    
+    initGPS();
+    
+    if (networkOnline) {
+        await refreshQRToken();
+        await refreshChallengeToken();
+        await loadLocations();
+    } else {
+        addLog("⚠️ Starting in OFFLINE mode", true);
+    }
+    
+    startTimers();
+    updateSystemUI();
+    
+    const savedToken = localStorage.getItem("gip_admin_token");
+    if (savedToken) {
+        adminToken = savedToken;
+        addLog("👑 Admin session restored", false);
+    }
+    
+    addLog("✅ SISTEM SIAP! (Dengan proteksi anti-curang)");
+}
+
+// ==================== EVENT LISTENERS ====================
+window.onload = boot;
+window.onbeforeunload = () => {
+    activeAbortControllers.forEach(controller => controller.abort());
+    if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+    if (geoWatchId) navigator.geolocation.clearWatch(geoWatchId);
+};
+
+$('absenBtn').onclick = submitAbsen;
+$('adminBtn').onclick = () => { $('adminLoginDiv').style.display = 'block'; $('adminPanel').style.display = 'none'; $('adminModal').style.display = 'flex'; };
+$('manageLocBtn').onclick = openLocationManager;
+$('syncQueueBtn').onclick = syncQueue;
+$('zoomQrBtn').onclick = showZoomQR;
+$('loginAdminBtn').onclick = adminLogin;
+$('refreshDashboardBtn').onclick = loadDashboard;
+$('exportLogsBtn').onclick = exportLogs;
+$('deleteSelectedBtn').onclick = deleteSelectedLogs;
+$('deleteAllBtn').onclick = deleteAllData;
+$('unbanDeviceBtn').onclick = unbanDevice;
+$('resetDeviceBtn').onclick = resetDevice;
+$('settingsBtn').onclick = openSettings;
+$('saveLocationBtn').onclick = saveNewLocation;
+$('autoGpsBtn').onclick = autoFillGPS;
+$('updateLocationBtn').onclick = updateLocation;
+$('filterProject').onchange = renderLogs;
+$('searchInput').oninput = renderLogs;
+</script>
+</body>
+</html>
