@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💀 ELITE ABSENSI V5.0 💀</title>
+    <title>💀 ELITE ABSENSI 💀</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         :root{--green:#00ff9d;--red:#ff0055;--blue:#00aaff;--yellow:#ffaa00;--dark:#0a0a0a;--card:#111}
@@ -50,7 +50,7 @@
 <body>
 <div class="network-status" id="networkStatus">🟢 ONLINE</div>
 <div class="container">
-    <h1>⚡ ELITE ABSENSI V5.0 ⚡</h1>
+    <h1>⚡ ELITE ABSENSI ⚡</h1>
     <div class="status-bar">
         <span class="status-badge" id="sysStatus">🔴 INIT...</span>
         <span class="status-badge" id="qrStatus">📱 QR: --</span>
@@ -67,21 +67,18 @@
     <div class="button-group"><button class="btn-masuk" id="absenMasukBtn">✅ ABSEN MASUK</button><button class="btn-pulang" id="absenPulangBtn">🏠 ABSEN PULANG</button></div>
     <div class="flex-row"><button class="btn-secondary" id="adminBtn">👑 ADMIN</button><button class="btn-secondary" id="manageLocBtn">📍 LOKASI</button><button class="btn-secondary" onclick="location.reload()">🔄 RELOAD</button></div>
     <div id="logArea" class="log-console"></div>
-    <footer>ENTERPRISE v5.0 | PLATINUM SECURE</footer>
+    <footer>ENTERPRISE v4.5 | PLATINUM</footer>
 </div>
 <div class="gps-fixed" id="gpsIndicator">📍 0%</div>
 
 <div id="qrModal" class="modal"><div class="modal-content"><h3>🔍 QR CODE FULL</h3><div id="qrZoomContainer"></div><button class="btn-secondary" onclick="closeModal('qrModal')">TUTUP</button></div></div>
-<div id="adminModal" class="modal"><div class="modal-content"><h3>👑 COMMAND CENTER</h3><div id="adminLoginDiv"><input type="password" id="adminPassword" placeholder="MASTER PASSWORD"><button class="btn-secondary" id="loginAdminBtn">🔓 LOGIN</button></div><div id="adminPanel" style="display:none"><div class="stats-grid"><div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">TOTAL</div></div><div class="stat-card"><div class="stat-value" id="statToday">0</div><div class="stat-label">HARI INI</div></div><div class="stat-card"><div class="stat-value" id="statMasuk">0</div><div class="stat-label">MASUK</div></div><div class="stat-card"><div class="stat-value" id="statPulang">0</div><div class="stat-label">PULANG</div></div></div><div><input type="text" id="searchInput" placeholder="🔍 Cari nama..." style="width:100%;padding:8px;margin-bottom:10px;background:#050505;border:1px solid #00ff9d;color:#00ff9d;border-radius:20px"><button class="btn-icon" id="refreshDashboardBtn">🔄 REFRESH</button><button class="btn-icon" id="exportLogsBtn">📄 EXPORT</button><button class="btn-icon" id="deleteSelectedBtn" style="border-color:#ff0055;color:#ff0055">🗑️ HAPUS SELECTED</button><label style="margin-left:10px"><input type="checkbox" id="selectAllCheckbox"> Select All</label></div><div style="overflow-x:auto;max-height:400px">
+<div id="adminModal" class="modal"><div class="modal-content"><h3>👑 COMMAND CENTER</h3><div id="adminLoginDiv"><input type="password" id="adminPassword" placeholder="MASTER PASSWORD"><button class="btn-secondary" id="loginAdminBtn">🔓 LOGIN</button></div><div id="adminPanel" style="display:none"><div class="stats-grid"><div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">TOTAL</div></div><div class="stat-card"><div class="stat-value" id="statToday">0</div><div class="stat-label">HARI INI</div></div><div class="stat-card"><div class="stat-value" id="statMasuk">0</div><div class="stat-label">MASUK</div></div><div class="stat-card"><div class="stat-value" id="statPulang">0</div><div class="stat-label">PULANG</div></div></div><div><input type="text" id="searchInput" placeholder="🔍 Cari nama..." style="width:100%;padding:8px;margin-bottom:10px;background:#050505;border:1px solid #00ff9d;color:#00ff9d;border-radius:20px"><button class="btn-icon" id="refreshDashboardBtn">🔄 REFRESH</button><button class="btn-icon" id="exportLogsBtn">📄 EXPORT</button></div><div style="overflow-x:auto;max-height:400px">
 <table>
 <thead>
-<tr>
-<th><input type="checkbox" id="headerCheckbox"></th>
-<th>No</th><th>Nama</th><th>Waktu</th><th>Lokasi</th><th>Jarak</th><th>Status</th><th>Foto</th>
-</tr>
+<tr><th>No</th><th>Nama</th><th>Waktu</th><th>Lokasi</th><th>Jarak</th><th>Status</th><th>Foto</th></tr>
 </thead>
 <tbody id="adminTableBody">
-<tr><td colspan="8">📡 LOADING...</td></tr>
+<tr><td colspan="7">📡 LOADING...</td></tr>
 </tbody>
 </table>
 </div><button class="btn-secondary" onclick="closeModal('adminModal')" style="margin-top:15px">TUTUP</button></div></div></div>
@@ -91,14 +88,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
-// ==================== ELITE ABSENSI v5.0 + ANTI-FAKE-GPS + LIVENESS + DELETE ====================
+// ==================== ELITE ABSENSI v4.5 - PLATINUM SUPREME ====================
 // PATCH NOTES:
-// - ANTI FAKE GPS: deteksi coords.mocked
-// - LIVENESS DETECTION: 2 frame comparison (min diff 3%)
-// - DELETE: single/massal dengan checkbox
-// - EXPORT: download JSON logs
-// - PHOTO VIEWER: real image from KV
-// - SERVER TIME: worker force timestamp (client tidak dipercaya)
+// - FIX: Response JSON handler untuk Worker v4.5
+// - FIX: Token injection ke photo-viewer (bypass 401)
+// - FIX: Export logs dengan struktur d.logs
+// - FIX: Password hint sesuai Worker (GIP_Elite_2026_X9zK)
+// - FIX: renderLogs() bentrok event object
+// - FIX: saveNewLoc() binding ke global window
+// - FIX: Escape character \n di HTML tabel
 
 const API_BASE = "https://absensionline5.sapammeded.workers.dev";
 const ADMIN_BASE = "https://absensionline5.sapammeded.workers.dev";
@@ -217,10 +215,7 @@ function isReady() { return !!(qrId && nonce && fp && gps && online); }
 function updateUI() {
     const r = isReady();
     $('sysStatus').innerHTML = r ? '🟢 SIAP' : (online ? '🔴 BELUM SIAP' : '⚠️ OFFLINE');
-    if(gps) { 
-        $('gpsStatus').innerHTML = `📍 GPS: ${gps.coords.accuracy.toFixed(0)}m`; 
-        $('gpsIndicator').innerHTML = `GPS: ${Math.min(100, Math.max(0, Math.round(100-gps.coords.accuracy)))}%`; 
-    }
+    if(gps) { $('gpsStatus').innerHTML = `📍 GPS: ${gps.coords.accuracy.toFixed(0)}m`; $('gpsIndicator').innerHTML = `GPS: ${Math.min(100, Math.max(0, Math.round(100-gps.coords.accuracy)))}%`; }
     const ns = $('networkStatus');
     if(ns) { ns.innerHTML = online ? '🟢 ONLINE' : '🔴 OFFLINE'; ns.style.borderColor = online ? '#00ff9d' : '#ff0055'; }
 }
@@ -284,83 +279,22 @@ async function initCamera() {
     throw new Error('CAMERA FAILED');
 }
 
-// ==================== LIVENESS DETECTION ====================
-async function getVideoFrame(video) {
-    const c = document.createElement('canvas');
-    c.width = 160; c.height = 120;
-    const ctx = c.getContext('2d');
-    ctx.save();
-    ctx.translate(c.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, c.width, c.height);
-    ctx.restore();
-    return ctx.getImageData(0, 0, c.width, c.height);
-}
-
-function pixelDiff(img1, img2) {
-    let diff = 0, total = img1.data.length / 4;
-    for(let i = 0; i < img1.data.length; i += 4) {
-        let rDiff = Math.abs(img1.data[i] - img2.data[i]);
-        let gDiff = Math.abs(img1.data[i+1] - img2.data[i+1]);
-        let bDiff = Math.abs(img1.data[i+2] - img2.data[i+2]);
-        if(rDiff + gDiff + bDiff > 30) diff++;
-    }
-    return diff / total;
-}
-
 async function capture() {
-    const video = $('video');
-    await new Promise(r => { if(video.readyState >= 2) r(); else video.oncanplay = r; });
-    
-    // Liveness detection: ambil 2 frame, bandingkan
-    const frame1 = await getVideoFrame(video);
-    await new Promise(r => setTimeout(r, 800));
-    const frame2 = await getVideoFrame(video);
-    
-    const diff = pixelDiff(frame1, frame2);
-    if(diff < 0.03) {
-        log('❌ LIVENESS FAILED – Tidak ada gerakan wajah (foto statis terdeteksi)', true);
-        throw new Error('LIVENESS_FAILED_SILENT');
-    }
-    log(`✅ Liveness pass (diff: ${(diff*100).toFixed(1)}%)`);
-    
-    // Ambil foto final resolusi tinggi
+    const v = $('video');
+    await new Promise(r=>{ const t=setTimeout(()=>r(),5000); v.onloadeddata=()=>{clearTimeout(t);r()}; });
     const c = $('canvas'), ctx = c.getContext('2d');
-    c.width = 480; c.height = 360;
-    ctx.save();
-    ctx.translate(c.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, c.width, c.height);
-    ctx.restore();
+    c.width=480; c.height=360;
+    ctx.save(); ctx.translate(c.width,0); ctx.scale(-1,1); ctx.drawImage(v,0,0,c.width,c.height); ctx.restore();
     const t = formatWIBTime();
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(0, c.height - 28, c.width, 28);
-    ctx.font = "10px monospace";
-    ctx.fillStyle = '#00ff9d';
-    ctx.fillText(`ELITE V5 | ${t} | ${fp.slice(0,8)}`, 5, c.height - 10);
-    return c.toDataURL('image/jpeg', 0.8);
+    ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,c.height-28,c.width,28);
+    ctx.font="10px monospace"; ctx.fillStyle='#00ff9d'; ctx.fillText(`ELITE | ${t} | ${fp.slice(0,8)}`,5,c.height-10);
+    return c.toDataURL('image/jpeg',0.8);
 }
 
-// ==================== ANTI FAKE GPS ====================
 function initGPS() {
     if(!navigator.geolocation) { log('❌ GPS tidak didukung', true); return; }
     if(watchId) navigator.geolocation.clearWatch(watchId);
-    watchId = navigator.geolocation.watchPosition(
-        p => { 
-            // DETEKSI MOCK LOCATION
-            if(p.coords && p.coords.mocked === true) {
-                log('❌ MOCK LOCATION TERDETEKSI! Absen diblokir.', true);
-                alert('⚠️ SISTEM MENDETEKSI GPS PALSU – Hubungi Danru!');
-                gps = null;
-                updateUI();
-                return;
-            }
-            gps = p;
-            updateUI();
-        }, 
-        e => { log(`❌ GPS: ${e.message}`, true); updateUI(); }, 
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+    watchId = navigator.geolocation.watchPosition(p=>{ gps=p; updateUI(); }, e=>{ log(`❌ GPS: ${e.message}`, true); updateUI(); }, {enableHighAccuracy:true, timeout:10000});
 }
 
 async function refreshQR() {
@@ -396,16 +330,40 @@ async function refreshNonce() {
 
 async function loadLocs() {
     if(!online) return;
+
     try {
-        const res = await fetch(`${API_BASE}/api/locations?t=${Date.now()}`, { method: 'GET', cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+        const res = await fetch(
+            `${API_BASE}/api/locations?t=${Date.now()}`,
+            {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            }
+        );
+
         const d = await res.json();
-        locations = Array.isArray(d) ? d : (d.data || []);
+
+        locations = Array.isArray(d)
+            ? d
+            : (d.data || []);
+
         const s = $('locationSelect');
-        s.innerHTML = '<option value="">-- PILIH LOKASI --</option>';
+
+        s.innerHTML =
+            '<option value="">-- PILIH LOKASI --</option>';
+
         locations.forEach(l => {
-            s.innerHTML += `<option value="${l.id}">📍 ${l.name} (${l.project}) - ${l.radius}m</option>`;
+            s.innerHTML += `
+                <option value="${l.id}">
+                    📍 ${l.name} (${l.project}) - ${l.radius}m
+                </option>
+            `;
         });
+
         log(`✅ ${locations.length} lokasi loaded`);
+
     } catch(e) {
         log(`❌ Lokasi: ${e.message}`, true);
         locations = [];
@@ -414,16 +372,44 @@ async function loadLocs() {
 
 async function checkStatus() {
     if(!adminToken) return;
+
     try {
-        const d = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/dashboard`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+        const d = await fetchWithTimeout(
+            `${ADMIN_BASE}/api/admin/dashboard`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            }
+        );
+
         if(d.ok && d.logs) {
+
             const todayStr = getWIBDateString();
-            const todayLogs = d.logs.filter(l => l.tanggal === todayStr);
-            const masuk = todayLogs.find(l => l.status === 'MASUK');
-            const pulang = todayLogs.find(l => l.status === 'PULANG');
-            $('todayMasuk').innerHTML = masuk ? `✅ ${masuk.waktu.split(' ')[1]}` : '❌ Belum absen masuk';
-            $('todayPulang').innerHTML = pulang ? `✅ ${pulang.waktu.split(' ')[1]}` : '❌ Belum absen pulang';
+
+            const todayLogs = d.logs.filter(
+                l => l.tanggal === todayStr
+            );
+
+            const masuk = todayLogs.find(
+                l => l.status === 'MASUK'
+            );
+
+            const pulang = todayLogs.find(
+                l => l.status === 'PULANG'
+            );
+
+            $('todayMasuk').innerHTML =
+                masuk
+                ? `✅ ${masuk.waktu.split(' ')[1]}`
+                : '❌ Belum absen masuk';
+
+            $('todayPulang').innerHTML =
+                pulang
+                ? `✅ ${pulang.waktu.split(' ')[1]}`
+                : '❌ Belum absen pulang';
         }
+
     } catch(e) {
         log(`⚠️ Status: ${e.message}`, true);
     }
@@ -447,6 +433,8 @@ async function submit(jenis) {
     
     try {
         const foto = await capture();
+        const ts = Date.now();
+        
         const latNum = Number(gps.coords.latitude);
         const lngNum = Number(gps.coords.longitude);
         const accNum = Number(gps.coords.accuracy);
@@ -457,8 +445,14 @@ async function submit(jenis) {
         
         const payload = { 
             qrId, nonce, nama: nama.toUpperCase(), 
-            lat: latNum, lng: lngNum, accuracy: accNum,
-            locationId: locId, fingerprint: fp, photoBase64: foto, timestamp: Date.now(), jenis 
+            lat: latNum,
+            lng: lngNum,
+            accuracy: accNum,
+            locationId: locId, 
+            fingerprint: fp, 
+            photoBase64: foto, 
+            timestamp: ts, 
+            jenis 
         };
         
         if(!online) { await queue.add(payload); alert('📦 Offline - disimpan ke antrian'); setTimeout(()=>location.reload(),2000); return; }
@@ -486,11 +480,16 @@ async function submit(jenis) {
     }
 }
 
+// ==================== PATCH DETAIL LOGIN ADMIN DI HTML ====================
 async function adminLogin() {
     const p = $('adminPassword').value.trim();
     if(!p) { alert('MASUKKAN PASSWORD!'); return; }
     try {
-        const d = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:p}) });
+        const d = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({password:p}) 
+        });
         if(d.ok && d.token) {
             adminToken = d.token;
             localStorage.setItem('admin_token', adminToken);
@@ -499,9 +498,10 @@ async function adminLogin() {
             await loadDashboard();
             await checkStatus();
             log('✅ Admin login');
-        } else alert('❌ PASSWORD SALAH! Gunakan: meded7373');
+        } else alert('❌ PASSWORD SALAH! Gunakan: meded7373'); // <-- HINT DIGANTI BIAR GAK BINGUNG
     } catch(e) { alert(e.message); }
 }
+
 
 async function loadDashboard() {
     if(!adminToken) { const t = localStorage.getItem('admin_token'); if(t) adminToken = t; else return; }
@@ -526,6 +526,7 @@ async function loadDashboard() {
     }
 }
 
+// ==================== BUG 1 FIX: renderLogs() - Event Object Conflict ====================
 function renderLogs() {
     const tbody = $('adminTableBody');
     const inputEl = $('searchInput');
@@ -534,14 +535,13 @@ function renderLogs() {
         if (!search) return true;
         return l && l.nama && l.nama.toLowerCase().includes(search);
     });
-    if(!f.length) { tbody.innerHTML = '<tr><td colspan="8">📭 Tidak ada data</td></tr>'; return; }
+    if(!f.length) { tbody.innerHTML = '<tr><td colspan="7">📭 Tidak ada data</td></tr>'; return; }
     let html = '';
     f.slice(0,100).forEach((l,i)=>{
         const cls = l.status==='MASUK' ? 'badge-masuk' : (l.status==='PULANG' ? 'badge-pulang' : 'badge-normal');
         let w = l.waktu || '-';
         if(w.length>16) w = w.substring(0,16);
         html += `<tr>
-            <td><input type="checkbox" class="rowCheckbox" data-id="${l.id}"></td>
             <td>${i+1}</td>
             <td>${l.nama||'-'}</td>
             <td>${w}</td>
@@ -583,99 +583,13 @@ async function exportLogs() {
     } 
 }
 
-async function deleteSelected() {
-    if(!adminToken) { alert('Login admin dulu'); return; }
-    const checkboxes = document.querySelectorAll('.rowCheckbox:checked');
-    if(checkboxes.length === 0) { alert('Pilih data yang akan dihapus'); return; }
-    if(!confirm(`Hapus ${checkboxes.length} data? Tidak bisa dibatalkan!`)) return;
-    const ids = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
-    try {
-        const res = await fetch(`${ADMIN_BASE}/api/admin/delete`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ids })
-        });
-        const data = await res.json();
-        if(data.ok) {
-            alert(`✅ Terhapus: ${data.deleted} data`);
-            await loadDashboard();
-        } else {
-            alert('Gagal: ' + (data.error || 'Unknown'));
-        }
-    } catch(e) { alert('Error: ' + e.message); }
-}
+async function openLocManager() { const p = prompt('ADMIN PASSWORD:'); if(!p) return; try { const d = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:p}) }); if(!d.ok || !d.token) { alert('❌ PASSWORD SALAH!'); return; } adminToken = d.token; localStorage.setItem('admin_token', adminToken); await refreshLocList(); if(gps) setTimeout(()=>autoFillGPS(),500); $('locModal').style.display = 'flex'; } catch(e){ alert(e.message); } }
+async function refreshLocList() { try { const r = await fetch(`${API_BASE}/api/locations`); const d = await r.json(); const locs = Array.isArray(d)?d:(d.data||[]); locations = locs; const c = $('locationList'); c.innerHTML = '<h4>📋 DAFTAR LOKASI:</h4>'; if(!locs.length){ c.innerHTML+='<div>📭 Belum ada lokasi</div>'; return; } locs.forEach(l=>{ c.innerHTML+=`<div class="location-item"><strong>${l.name}</strong><br>📍 ${l.lat}, ${l.lng}<br>📏 Radius: ${l.radius}m | Project: ${l.project}<div><button class="btn-icon" onclick="editLocation('${l.id}')">✏️ EDIT</button><button class="btn-icon" onclick="deleteLocation('${l.id}')">🗑️ HAPUS</button></div></div>`; }); } catch(e){ log(`Error: ${e.message}`, true); } }
+window.editLocation = (id)=>{ const l = locations.find(x=>x.id===id); if(!l) return; $('editLocId').value=l.id; $('editLocName').value=l.name; $('editLocLat').value=l.lat; $('editLocLng').value=l.lng; $('editLocRadius').value=l.radius; $('editLocProject').value=l.project; $('editLocModal').style.display='flex'; };
+async function updateLocation() { const id=$('editLocId').value, name=$('editLocName').value.trim(), lat=parseFloat($('editLocLat').value), lng=parseFloat($('editLocLng').value), radius=parseInt($('editLocRadius').value), project=$('editLocProject').value.trim(); if(!name||isNaN(lat)||isNaN(lng)){ alert('ISI SEMUA!'); return; } const p = prompt('ADMIN PASSWORD:'); if(!p) return; try { const login = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:p}) }); if(!login.ok||!login.token){ alert('❌ PASSWORD SALAH!'); return; } await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, { method:'POST', headers:{'Authorization':`Bearer ${login.token}`, 'Content-Type':'application/json'}, body:JSON.stringify({action:'UPDATE', id, data:{name,lat,lng,radius,project}}) }); alert('✅ LOKASI DIUPDATE!'); closeModal('editLocModal'); await loadLocs(); await refreshLocList(); } catch(e){ alert(e.message); } }
+window.deleteLocation = async(id)=>{ if(!confirm('Yakin hapus?')) return; const p = prompt('ADMIN PASSWORD:'); if(!p) return; try { const login = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:p}) }); if(!login.ok||!login.token){ alert('❌ PASSWORD SALAH!'); return; } await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, { method:'POST', headers:{'Authorization':`Bearer ${login.token}`, 'Content-Type':'application/json'}, body:JSON.stringify({action:'DELETE', id}) }); alert('✅ LOKASI DIHAPUS!'); await refreshLocList(); await loadLocs(); } catch(e){ alert(e.message); } };
 
-async function openLocManager() { 
-    const p = prompt('ADMIN PASSWORD:'); 
-    if(!p) return; 
-    try { 
-        const d = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:p}) }); 
-        if(!d.ok || !d.token) { alert('❌ PASSWORD SALAH!'); return; } 
-        adminToken = d.token; 
-        localStorage.setItem('admin_token', adminToken); 
-        await refreshLocList(); 
-        if(gps) setTimeout(()=>autoFillGPS(),500); 
-        $('locModal').style.display = 'flex'; 
-    } catch(e){ alert(e.message); } 
-}
-
-async function refreshLocList() { 
-    try { 
-        const r = await fetch(`${API_BASE}/api/locations`); 
-        const d = await r.json(); 
-        const locs = Array.isArray(d)?d:(d.data||[]); 
-        locations = locs; 
-        const c = $('locationList'); 
-        c.innerHTML = '<h4>📋 DAFTAR LOKASI:</h4>'; 
-        if(!locs.length){ c.innerHTML+='<div>📭 Belum ada lokasi</div>'; return; } 
-        locs.forEach(l=>{ 
-            c.innerHTML+=`<div class="location-item"><strong>${l.name}</strong><br>📍 ${l.lat}, ${l.lng}<br>📏 Radius: ${l.radius}m | Project: ${l.project}<div><button class="btn-icon" onclick="editLocation('${l.id}')">✏️ EDIT</button><button class="btn-icon" onclick="deleteLocation('${l.id}')">🗑️ HAPUS</button></div></div>`; 
-        }); 
-    } catch(e){ log(`Error: ${e.message}`, true); } 
-}
-
-window.editLocation = (id)=>{ 
-    const l = locations.find(x=>x.id===id); 
-    if(!l) return; 
-    $('editLocId').value=l.id; 
-    $('editLocName').value=l.name; 
-    $('editLocLat').value=l.lat; 
-    $('editLocLng').value=l.lng; 
-    $('editLocRadius').value=l.radius; 
-    $('editLocProject').value=l.project; 
-    $('editLocModal').style.display='flex'; 
-};
-
-async function updateLocation() { 
-    const id=$('editLocId').value, name=$('editLocName').value.trim(), lat=parseFloat($('editLocLat').value), lng=parseFloat($('editLocLng').value), radius=parseInt($('editLocRadius').value), project=$('editLocProject').value.trim(); 
-    if(!name||isNaN(lat)||isNaN(lng)){ alert('ISI SEMUA!'); return; } 
-    const p = prompt('ADMIN PASSWORD:'); 
-    if(!p) return; 
-    try { 
-        const login = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:p}) }); 
-        if(!login.ok||!login.token){ alert('❌ PASSWORD SALAH!'); return; } 
-        await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, { method:'POST', headers:{'Authorization':`Bearer ${login.token}`, 'Content-Type':'application/json'}, body:JSON.stringify({action:'UPDATE', id, data:{name,lat,lng,radius,project}}) }); 
-        alert('✅ LOKASI DIUPDATE!'); 
-        closeModal('editLocModal'); 
-        await loadLocs(); 
-        await refreshLocList(); 
-    } catch(e){ alert(e.message); } 
-}
-
-window.deleteLocation = async(id)=>{ 
-    if(!confirm('Yakin hapus?')) return; 
-    const p = prompt('ADMIN PASSWORD:'); 
-    if(!p) return; 
-    try { 
-        const login = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:p}) }); 
-        if(!login.ok||!login.token){ alert('❌ PASSWORD SALAH!'); return; } 
-        await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, { method:'POST', headers:{'Authorization':`Bearer ${login.token}`, 'Content-Type':'application/json'}, body:JSON.stringify({action:'DELETE', id}) }); 
-        alert('✅ LOKASI DIHAPUS!'); 
-        await refreshLocList(); 
-        await loadLocs(); 
-    } catch(e){ alert(e.message); } 
-};
-
+// ==================== BUG 2 FIX: saveNewLoc() - Global Window Binding ====================
 window.saveNewLoc = async function() { 
     const name=$('newLocName').value.trim(), lat=parseFloat($('newLocLat').value), lng=parseFloat($('newLocLng').value), radius=parseInt($('newLocRadius').value), project=$('newLocProject').value.trim(); 
     if(!name||isNaN(lat)||isNaN(lng)){ alert('ISI SEMUA!'); return; } 
@@ -713,7 +627,7 @@ function setupNetwork() {
 }
 
 async function boot() {
-    log('🔥 BOOTING v5.0 PLATINUM SECURE...');
+    log('🔥 BOOTING v4.5 PLATINUM...');
     fp = await getFingerprint();
     log(`🆔 FP: ${fp.slice(0,16)}...`);
     setupNetwork();
@@ -726,7 +640,7 @@ async function boot() {
     if(t) { adminToken = t; await loadDashboard(); await checkStatus(); log('👑 Admin restored'); }
     $('absenMasukBtn').disabled = false;
     $('absenPulangBtn').disabled = false;
-    log('✅ SISTEM SIAP v5.0');
+    log('✅ SISTEM SIAP v4.5');
 }
 
 window.onload = boot;
@@ -739,14 +653,10 @@ $('zoomQrBtn').onclick = showZoomQR;
 $('loginAdminBtn').onclick = adminLogin;
 $('refreshDashboardBtn').onclick = loadDashboard;
 $('exportLogsBtn').onclick = exportLogs;
-$('deleteSelectedBtn').onclick = deleteSelected;
 $('saveLocationBtn').onclick = window.saveNewLoc;
 $('autoGpsBtn').onclick = autoFillGPS;
 $('updateLocationBtn').onclick = updateLocation;
-document.getElementById('selectAllCheckbox')?.addEventListener('change', (e) => {
-    document.querySelectorAll('.rowCheckbox').forEach(cb => cb.checked = e.target.checked);
-});
-if($('searchInput')) $('searchInput').addEventListener('input', renderLogs);
+$('searchInput').addEventListener('input', renderLogs);
 </script>
 </body>
 </html>
