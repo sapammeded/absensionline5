@@ -330,29 +330,44 @@ async function refreshNonce() {
 
 async function loadLocs() {
     if(!online) return;
-    try {
-        const d = await fetchWithTimeout(`${API_BASE}/api/locations`, {});
-        locations = Array.isArray(d)?d:(d.data||[]);
-        const s = $('locationSelect');
-        s.innerHTML = '<option value="">-- PILIH LOKASI --</option>';
-        locations.forEach(l=>{ s.innerHTML += `<option value='${l.id}'>📍 ${l.name} (${l.project}) - ${l.radius}m</option>`; });
-        log(`✅ ${locations.length} lokasi`);
-    } catch(e) { log(`❌ Lokasi: ${e.message}`, true); locations=[]; }
-}
 
-async function checkStatus() {
-    if(!adminToken) return;
     try {
-        const d = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/dashboard`, { headers:{'Authorization':`Bearer ${adminToken}`} });
-        if(d.ok && d.logs) {
-            const todayStr = getWIBDateString();
-            const todayLogs = d.logs.filter(l => l.tanggal === todayStr);
-            const masuk = todayLogs.find(l=>l.status==='MASUK');
-            const pulang = todayLogs.find(l=>l.status==='PULANG');
-            $('todayMasuk').innerHTML = masuk ? `✅ ${masuk.waktu.split(' ')[1]}` : '❌ Belum absen masuk';
-            $('todayPulang').innerHTML = pulang ? `✅ ${pulang.waktu.split(' ')[1]}` : '❌ Belum absen pulang';
-        }
-    } catch(e) { log(`⚠️ Status: ${e.message}`, true); }
+        const res = await fetch(
+            `${API_BASE}/api/locations?t=${Date.now()}`,
+            {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            }
+        );
+
+        const d = await res.json();
+
+        locations = Array.isArray(d)
+            ? d
+            : (d.data || []);
+
+        const s = $('locationSelect');
+
+        s.innerHTML =
+            '<option value="">-- PILIH LOKASI --</option>';
+
+        locations.forEach(l => {
+            s.innerHTML += `
+                <option value="${l.id}">
+                    📍 ${l.name} (${l.project}) - ${l.radius}m
+                </option>
+            `;
+        });
+
+        log(`✅ ${locations.length} lokasi loaded`);
+
+    } catch(e) {
+        log(`❌ Lokasi: ${e.message}`, true);
+        locations = [];
+    }
 }
 
 async function submit(jenis) {
