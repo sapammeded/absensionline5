@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💀 ELITE ABSENSI V5.0 💀</title>
+    <title>💀 ELITE ABSENSI V5.1 💀</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         :root{--green:#00ff9d;--red:#ff0055;--blue:#00aaff;--yellow:#ffaa00;--dark:#0a0a0a;--card:#111}
@@ -50,7 +50,7 @@
 <body>
 <div class="network-status" id="networkStatus">🟢 ONLINE</div>
 <div class="container">
-    <h1>⚡ ELITE ABSENSI V5.0 ⚡</h1>
+    <h1>⚡ ELITE ABSENSI V5.1 ⚡</h1>
     <div class="status-bar">
         <span class="status-badge" id="sysStatus">🔴 INIT...</span>
         <span class="status-badge" id="qrStatus">📱 QR: --</span>
@@ -67,7 +67,7 @@
     <div class="button-group"><button class="btn-masuk" id="absenMasukBtn">✅ ABSEN MASUK</button><button class="btn-pulang" id="absenPulangBtn">🏠 ABSEN PULANG</button></div>
     <div class="flex-row"><button class="btn-secondary" id="adminBtn">👑 ADMIN</button><button class="btn-secondary" id="manageLocBtn">📍 LOKASI</button><button class="btn-secondary" onclick="location.reload()">🔄 RELOAD</button></div>
     <div id="logArea" class="log-console"></div>
-    <footer>ENTERPRISE v5.0 | PLATINUM SECURE</footer>
+    <footer>ENTERPRISE v5.1 | FORMAT WAKTU WAJIB</footer>
 </div>
 <div class="gps-fixed" id="gpsIndicator">📍 0%</div>
 
@@ -91,14 +91,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
-// ==================== ELITE ABSENSI v5.0 + ANTI-FAKE-GPS + LIVENESS + DELETE ====================
-// PATCH NOTES:
-// - ANTI FAKE GPS: deteksi coords.mocked
-// - LIVENESS DETECTION: 2 frame comparison (min diff 3%)
-// - DELETE: single/massal dengan checkbox
-// - EXPORT: download JSON logs
-// - PHOTO VIEWER: real image from KV
-// - SERVER TIME: worker force timestamp (client tidak dipercaya)
+// ==================== ELITE ABSENSI v5.1 — FORMAT WAKTU WAJIB ====================
+// Format: "Senin, 18 Mei 2026 pukul 20.51.52"
 
 const API_BASE = "https://absensionline5.sapammeded.workers.dev";
 const ADMIN_BASE = "https://absensionline5.sapammeded.workers.dev";
@@ -114,20 +108,38 @@ const REQ_TIMEOUT = 10000, MAX_RETRIES = 2, MAX_CONCURRENT = 2;
 
 function $(id) { return document.getElementById(id); }
 
-function getWIBDate() {
-    return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+// FORMAT WAKTU WAJIB: "Senin, 18 Mei 2026 pukul 20.51.52"
+function formatWIBFull() {
+    const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    };
+    let formatted = d.toLocaleString("id-ID", options);
+    formatted = formatted.replace(/\./g, ":");
+    const timeMatch = formatted.match(/(\d{2}):(\d{2}):(\d{2})/);
+    if (timeMatch) {
+        formatted = formatted.replace(/(\d{2}):(\d{2}):(\d{2})/, "$1.$2.$3");
+    }
+    if (!formatted.includes("pukul")) {
+        const parts = formatted.split(" ");
+        const time = parts.pop();
+        formatted = parts.join(" ") + " pukul " + time;
+    }
+    return formatted;
 }
 
 function formatWIBTime() {
-    return getWIBDate().toLocaleTimeString('id-ID', { hour12: false });
-}
-
-function formatWIBFull() {
-    return getWIBDate().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return formatWIBFull();
 }
 
 function getWIBDateString() {
-    const d = getWIBDate();
+    const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
@@ -225,7 +237,7 @@ function updateUI() {
     if(ns) { ns.innerHTML = online ? '🟢 ONLINE' : '🔴 OFFLINE'; ns.style.borderColor = online ? '#00ff9d' : '#ff0055'; }
 }
 
-// ==================== QUEUE WITH DEDUPLICATION ====================
+// ==================== QUEUE ====================
 class Queue {
     constructor() { this.key = 'queue_v2'; this.max = 10; this.lock = false; }
     get() { try { return JSON.parse(localStorage.getItem(this.key)||'[]'); } catch(e){ return []; } }
@@ -312,19 +324,17 @@ async function capture() {
     const video = $('video');
     await new Promise(r => { if(video.readyState >= 2) r(); else video.oncanplay = r; });
     
-    // Liveness detection: ambil 2 frame, bandingkan
     const frame1 = await getVideoFrame(video);
     await new Promise(r => setTimeout(r, 800));
     const frame2 = await getVideoFrame(video);
     
     const diff = pixelDiff(frame1, frame2);
     if(diff < 0.03) {
-        log('❌ LIVENESS FAILED – Tidak ada gerakan wajah (foto statis terdeteksi)', true);
+        log('❌ LIVENESS FAILED – Tidak ada gerakan wajah', true);
         throw new Error('LIVENESS_FAILED_SILENT');
     }
     log(`✅ Liveness pass (diff: ${(diff*100).toFixed(1)}%)`);
     
-    // Ambil foto final resolusi tinggi
     const c = $('canvas'), ctx = c.getContext('2d');
     c.width = 480; c.height = 360;
     ctx.save();
@@ -347,7 +357,6 @@ function initGPS() {
     if(watchId) navigator.geolocation.clearWatch(watchId);
     watchId = navigator.geolocation.watchPosition(
         p => { 
-            // DETEKSI MOCK LOCATION
             if(p.coords && p.coords.mocked === true) {
                 log('❌ MOCK LOCATION TERDETEKSI! Absen diblokir.', true);
                 alert('⚠️ SISTEM MENDETEKSI GPS PALSU – Hubungi Danru!');
@@ -421,8 +430,8 @@ async function checkStatus() {
             const todayLogs = d.logs.filter(l => l.tanggal === todayStr);
             const masuk = todayLogs.find(l => l.status === 'MASUK');
             const pulang = todayLogs.find(l => l.status === 'PULANG');
-            $('todayMasuk').innerHTML = masuk ? `✅ ${masuk.waktu.split(' ')[1]}` : '❌ Belum absen masuk';
-            $('todayPulang').innerHTML = pulang ? `✅ ${pulang.waktu.split(' ')[1]}` : '❌ Belum absen pulang';
+            $('todayMasuk').innerHTML = masuk ? `✅ ${masuk.waktu.split(' ')[0]}` : '❌ Belum absen masuk';
+            $('todayPulang').innerHTML = pulang ? `✅ ${pulang.waktu.split(' ')[0]}` : '❌ Belum absen pulang';
         }
     } catch(e) {
         log(`⚠️ Status: ${e.message}`, true);
@@ -534,12 +543,12 @@ function renderLogs() {
         if (!search) return true;
         return l && l.nama && l.nama.toLowerCase().includes(search);
     });
-    if(!f.length) { tbody.innerHTML = '<tr><td colspan="8">📭 Tidak ada data</td></tr>'; return; }
+    if(!f.length) { tbody.innerHTML = '<tr><td colspan="8">📭 Tidak ada数据</td></tr>'; return; }
     let html = '';
     f.slice(0,100).forEach((l,i)=>{
         const cls = l.status==='MASUK' ? 'badge-masuk' : (l.status==='PULANG' ? 'badge-pulang' : 'badge-normal');
         let w = l.waktu || '-';
-        if(w.length>16) w = w.substring(0,16);
+        if(w.length > 30) w = w.substring(0,30);
         html += `<tr>
             <td><input type="checkbox" class="rowCheckbox" data-id="${l.id}"></td>
             <td>${i+1}</td>
@@ -713,7 +722,7 @@ function setupNetwork() {
 }
 
 async function boot() {
-    log('🔥 BOOTING v5.0 PLATINUM SECURE...');
+    log('🔥 BOOTING v5.1 FORMAT WAKTU WAJIB...');
     fp = await getFingerprint();
     log(`🆔 FP: ${fp.slice(0,16)}...`);
     setupNetwork();
@@ -726,7 +735,7 @@ async function boot() {
     if(t) { adminToken = t; await loadDashboard(); await checkStatus(); log('👑 Admin restored'); }
     $('absenMasukBtn').disabled = false;
     $('absenPulangBtn').disabled = false;
-    log('✅ SISTEM SIAP v5.0');
+    log('✅ SISTEM SIAP v5.1');
 }
 
 window.onload = boot;
