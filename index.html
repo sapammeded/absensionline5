@@ -370,6 +370,51 @@ async function loadLocs() {
     }
 }
 
+async function checkStatus() {
+    if(!adminToken) return;
+
+    try {
+        const d = await fetchWithTimeout(
+            `${ADMIN_BASE}/api/admin/dashboard`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            }
+        );
+
+        if(d.ok && d.logs) {
+
+            const todayStr = getWIBDateString();
+
+            const todayLogs = d.logs.filter(
+                l => l.tanggal === todayStr
+            );
+
+            const masuk = todayLogs.find(
+                l => l.status === 'MASUK'
+            );
+
+            const pulang = todayLogs.find(
+                l => l.status === 'PULANG'
+            );
+
+            $('todayMasuk').innerHTML =
+                masuk
+                ? `✅ ${masuk.waktu.split(' ')[1]}`
+                : '❌ Belum absen masuk';
+
+            $('todayPulang').innerHTML =
+                pulang
+                ? `✅ ${pulang.waktu.split(' ')[1]}`
+                : '❌ Belum absen pulang';
+        }
+
+    } catch(e) {
+        log(`⚠️ Status: ${e.message}`, true);
+    }
+}
+
 async function submit(jenis) {
     if(submitting) { log('⏳ Tunggu...', true); return; }
     if(!isReady()) { alert('SISTEM BELUM SIAP!'); return; }
