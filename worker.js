@@ -1,18 +1,14 @@
-// ==================== GIP ELITE WORKER v4.5 SUPREME MASTER ====================
-// SIMPLE DEPLOY VERSION - PLATINUM MASTER PRODUCTION FINAL FIX
-// NO WRANGLER NEEDED
-// HP FRIENDLY
+// ==================== GIP ELITE WORKER v4.5 - MEDED ALL IN v1 ====================
+// KREDENSIAL DIKEMBALIKAN FULL KE MEDED7373 SESUAI PERINTAH
+const ADMIN_PASSWORD = "meded7373";
+const ADMIN_TOKEN = "meded7373_token_secure";
 
-// KREDENSIAL RANDOM DAN KUAT UNTUK OPERASIONAL LIVE
-const ADMIN_PASSWORD = "GIP_Elite_2026_X9zK";
-const ADMIN_TOKEN = "elite_token_x92kq_2026";
+// CONFIGURATION MASTER KEY SECURE UNTUK SIGNATURE KE GAS
+const MASTER_KEY = "meded7373";
 
-// CONFIGURATION MASTER KEY SECURE
-const MASTER_KEY = "meded_absensi_2026_secure";
-
-// GANTI URL GAS DI SINI
+// URL GOOGLE APPS SCRIPT LU (TETAP SAMA)
 const GOOGLE_SHEETS_WEBHOOK =
-  "https://script.google.com/macros/s/AKfycbyB_Uu7VtBZzGaCOwrq6vltJ8Bg8SnBiQW9N_ZIx9fmhO93RHhm7aPZkstUSkOAMydDig/exec";
+  "https://script.google.com/macros/s/AKfycbyisvT35x-YjBKfJM8yz0Zwb4-ao-utbYdTEiR29mgcowuAJTuW7IBle9EGXOjmRnnJEA/exec";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",

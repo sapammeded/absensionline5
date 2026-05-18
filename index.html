@@ -420,6 +420,7 @@ async function submit(jenis) {
     }
 }
 
+// ==================== PATCH DETAIL LOGIN ADMIN DI HTML ====================
 async function adminLogin() {
     const p = $('adminPassword').value.trim();
     if(!p) { alert('MASUKKAN PASSWORD!'); return; }
@@ -437,9 +438,10 @@ async function adminLogin() {
             await loadDashboard();
             await checkStatus();
             log('✅ Admin login');
-        } else alert('❌ PASSWORD SALAH! Gunakan: GIP_Elite_2026_X9zK');
+        } else alert('❌ PASSWORD SALAH! Gunakan: meded7373'); // <-- HINT DIGANTI BIAR GAK BINGUNG
     } catch(e) { alert(e.message); }
 }
+
 
 async function loadDashboard() {
     if(!adminToken) { const t = localStorage.getItem('admin_token'); if(t) adminToken = t; else return; }
