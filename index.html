@@ -33,25 +33,23 @@
         .location-item{background:#0a1a15;margin:8px 0;padding:10px;border-radius:12px;border-left:3px solid var(--neon-green);font-size:0.8rem}
         .gps-fixed{position:fixed;bottom:10px;right:10px;background:#000;padding:6px 12px;border-radius:20px;font-size:0.6rem;border:1px solid var(--neon-green);z-index:99}
         footer{text-align:center;font-size:0.6rem;margin-top:15px;opacity:0.7}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:20px}
-        .stat-card{background:#0a0a0a;border:1px solid var(--neon-green);border-radius:12px;padding:10px;text-align:center}
-        .stat-value{font-size:1.5rem;font-weight:bold;color:var(--neon-green)}
+        .stats-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;justify-content:space-between}
+        .stat-card{background:#0a0a0a;border:1px solid var(--neon-green);border-radius:12px;padding:10px;text-align:center;flex:1;min-width:80px}
+        .stat-value{font-size:1.3rem;font-weight:bold;color:var(--neon-green)}
         .stat-label{font-size:0.6rem;opacity:0.7}
         .filter-bar{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;background:#0a0a0a;padding:10px;border-radius:16px}
         .filter-select{background:#050505;border:1px solid var(--neon-green);color:var(--neon-green);padding:8px;border-radius:20px}
         table{width:100%;font-size:0.7rem;border-collapse:collapse}
         th,td{border:1px solid #333;padding:6px;text-align:left}
-        .alert-row{background:rgba(255,0,85,0.2)}
         .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.6rem}
         .badge-masuk{background:#00ff9d;color:#000}
         .badge-pulang{background:#00aaff;color:#000}
-        .photo-thumb{width:50px;height:50px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--neon-green);background:#333}
+        .photo-thumb{width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--neon-green);background:#333}
         .photo-modal-img{max-width:100%;max-height:80vh;border-radius:16px;border:2px solid var(--neon-green)}
-        .progress-bar{width:100%;height:8px;background:#333;border-radius:4px;margin-top:5px;overflow:hidden}
-        .progress-fill{height:100%;background:var(--neon-green);border-radius:4px;transition:width 0.3s}
         @media print{.camera-container,.qr-box,.btn-masuk,.btn-pulang,.flex-row,.gps-fixed,.status-bar,footer,.log-console{display:none}}
         .network-status{position:fixed;top:5px;left:5px;padding:4px 10px;border-radius:20px;font-size:0.6rem;z-index:100;background:#000;border:1px solid}
         .button-group{display:flex;gap:15px;margin:15px 0}
+        .jam-besar{font-size:1.1rem;font-weight:bold;color:var(--neon-green);margin-bottom:10px;text-align:center}
     </style>
 </head>
 <body>
@@ -66,10 +64,10 @@
         <span class="status-badge" id="queueStatus">📦 Q:0</span>
     </div>
     
-    <!-- STATUS ABSEN HARI INI -->
+    <div class="jam-besar" id="wibTime">--:--:--</div>
+    
     <div class="today-status" id="todayStatus">
-        📅 Hari ini: <span id="todayMasuk">Belum absen masuk</span> | 
-        🏠 Pulang: <span id="todayPulang">Belum absen pulang</span>
+        📅 <span id="todayMasuk">Belum absen masuk</span> | 🏠 <span id="todayPulang">Belum absen pulang</span>
     </div>
     
     <div class="qr-box">
@@ -82,28 +80,26 @@
     <select id="locationSelect"><option value="">-- PILIH LOKASI --</option></select>
     
     <div class="button-group">
-        <button class="btn-masuk" id="absenMasukBtn" disabled>✅ ABSEN MASUK</button>
-        <button class="btn-pulang" id="absenPulangBtn" disabled>🏠 ABSEN PULANG</button>
+        <button class="btn-masuk" id="absenMasukBtn">✅ ABSEN MASUK</button>
+        <button class="btn-pulang" id="absenPulangBtn">🏠 ABSEN PULANG</button>
     </div>
     
     <div class="flex-row">
         <button class="btn-secondary" id="adminBtn">👑 ADMIN</button>
         <button class="btn-secondary" id="manageLocBtn">📍 LOKASI</button>
-        <button class="btn-secondary" id="syncQueueBtn">📦 SYNC QUEUE</button>
         <button class="btn-secondary" onclick="location.reload()">🔄 RELOAD</button>
     </div>
     <div id="logArea" class="log-console"></div>
-    <footer>ABSENSI ONLINE ENTERPRISE | WIB: <span id="wibTime">--:--:--</span></footer>
+    <footer>ABSENSI ONLINE ENTERPRISE</footer>
 </div>
 <div class="gps-fixed" id="gpsIndicator">📍 0%</div>
 
-<!-- MODAL-MODAL (SAMA SEPERTI SEBELUMNYA, DI-SINGKATKAN AGAR TIDAK KEPANJANGAN) -->
+<!-- MODALS -->
 <div id="qrModal" class="modal"><div class="modal-content" style="text-align:center"><h3>🔍 QR CODE FULL</h3><div id="qrZoomContainer"></div><button class="btn-secondary" onclick="closeModal('qrModal')">TUTUP</button></div></div>
-<div id="adminModal" class="modal"><div class="modal-content" style="width:98%;max-width:1400px;max-height:90vh"><h3>👑 ABSENSI ELITE COMMAND CENTER</h3><div id="adminLoginDiv" style="text-align:center;padding:30px"><input type="password" id="adminPassword" placeholder="MASTER PASSWORD" style="max-width:300px;margin:0 auto"><button class="btn-secondary" id="loginAdminBtn" style="margin-top:15px">🔓 LOGIN</button></div><div id="adminPanel" style="display:none"><div class="stats-grid"><div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">TOTAL ABSEN</div></div><div class="stat-card"><div class="stat-value" id="statToday">0</div><div class="stat-label">HARI INI</div></div><div class="stat-card"><div class="stat-value" id="statAlert">0</div><div class="stat-label">ALERT</div></div><div class="stat-card"><div class="stat-value" id="statAnomaly">0</div><div class="stat-label">ANOMALY</div></div><div class="stat-card"><div class="stat-value" id="statBanned">0</div><div class="stat-label">BANNED</div></div><div class="stat-card"><div class="stat-value" id="statStorage">0</div><div class="stat-label">STORAGE (MB)</div></div><div class="stat-card"><div class="stat-value" id="statStoragePercent">0%</div><div class="stat-label">USED</div></div></div><div class="filter-bar"><input type="text" id="searchInput" class="filter-select" placeholder="🔍 Cari nama..." style="flex:2"><select id="filterProject" class="filter-select"><option value="ALL">📁 SEMUA PROJECT</option></select><button class="btn-icon" id="refreshDashboardBtn">🔄</button><button class="btn-icon" id="exportLogsBtn">📄</button><button class="btn-icon" id="deleteSelectedBtn" style="background:#ff0055;color:white">🗑️ CHECKED</button><button class="btn-icon" id="deleteAllBtn" style="background:#ff0055;color:white">🗑️ ALL</button><button class="btn-icon" id="unbanDeviceBtn">🔓</button><button class="btn-icon" id="resetDeviceBtn">🔄 RESET DEVICE</button><button class="btn-icon" id="settingsBtn">⚙️</button></div><div style="overflow-x:auto;max-height:500px;overflow-y:auto"><table><thead><tr><th><input type="checkbox" id="selectAllCheckbox"></th><th>No</th><th>Nama</th><th>Waktu</th><th>Project</th><th>Lokasi</th><th>Jarak</th><th>Akurasi</th><th>Status</th><th>Foto</th></tr></thead><tbody id="adminTableBody"><tr><td colspan="10">📡 LOADING...</td></tr></tbody></table></div><div style="margin-top:15px"><button class="btn-secondary" onclick="closeModal('adminModal')">TUTUP</button></div></div></div></div>
+<div id="adminModal" class="modal"><div class="modal-content" style="width:98%;max-width:1400px;max-height:90vh"><h3>👑 COMMAND CENTER</h3><div id="adminLoginDiv" style="text-align:center;padding:30px"><input type="password" id="adminPassword" placeholder="MASTER PASSWORD" style="max-width:300px;margin:0 auto"><button class="btn-secondary" id="loginAdminBtn" style="margin-top:15px">🔓 LOGIN</button></div><div id="adminPanel" style="display:none"><div class="stats-grid"><div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">TOTAL</div></div><div class="stat-card"><div class="stat-value" id="statToday">0</div><div class="stat-label">HARI INI</div></div><div class="stat-card"><div class="stat-value" id="statMasuk">0</div><div class="stat-label">MASUK</div></div><div class="stat-card"><div class="stat-value" id="statPulang">0</div><div class="stat-label">PULANG</div></div></div><div class="filter-bar"><input type="text" id="searchInput" class="filter-select" placeholder="🔍 Cari nama..." style="flex:2"><button class="btn-icon" id="refreshDashboardBtn">🔄</button><button class="btn-icon" id="exportLogsBtn">📄</button></div><div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table><thead><tr><th>No</th><th>Nama</th><th>Waktu</th><th>Lokasi</th><th>Status</th><th>Foto</th></tr></thead><tbody id="adminTableBody"><tr><td colspan="6">📡 LOADING...</td></tr></tbody></table></div><div style="margin-top:15px"><button class="btn-secondary" onclick="closeModal('adminModal')">TUTUP</button></div></div></div></div>
 <div id="photoModal" class="modal"><div class="modal-content" style="text-align:center"><h3>📸 FOTO ABSEN</h3><img id="photoModalImg" class="photo-modal-img"><button class="btn-secondary" onclick="closeModal('photoModal')">TUTUP</button></div></div>
 <div id="locModal" class="modal"><div class="modal-content"><h3>📍 MANAJEMEN LOKASI</h3><div id="locationList"></div><hr><h4>➕ TAMBAH LOKASI</h4><input type="text" id="newLocName" placeholder="Nama Lokasi"><div class="flex-row"><input type="text" id="newLocLat" placeholder="Latitude"><input type="text" id="newLocLng" placeholder="Longitude"></div><button class="btn-secondary" id="autoGpsBtn">📍 AMBIL GPS</button><div class="flex-row"><input type="number" id="newLocRadius" placeholder="Radius (meter)" value="50"><input type="text" id="newLocProject" placeholder="Project"></div><button class="btn-secondary" id="saveLocationBtn">💾 SIMPAN</button><button class="btn-secondary" onclick="closeModal('locModal')">TUTUP</button></div></div>
-<div id="editLocModal" class="modal"><div class="modal-content"><h3>✏️ EDIT LOKASI</h3><input type="hidden" id="editLocId"><input type="text" id="editLocName"><div class="flex-row"><input type="text" id="editLocLat"><input type="text" id="editLocLng"></div><div class="flex-row"><input type="number" id="editLocRadius"><input type="text" id="editLocProject"></div><div class="flex-row"><button class="btn-secondary" id="updateLocationBtn">💾 UPDATE</button><button class="btn-secondary" onclick="closeModal('editLocModal')">BATAL</button></div></div></div>
-<div id="settingsModal" class="modal"><div class="modal-content"><h3>⚙️ SETTINGS</h3><button class="btn-secondary" onclick="closeModal('settingsModal')">TUTUP</button></div></div>
+<div id="editLocModal" class="modal"><div class="modal-content"><h3>✏️ EDIT LOKASI</h3><input type="hidden" id="editLocId"><input type="text" id="editLocName"><div class="flex-row"><input type="text" id="editLocLat"><input type="text" id="editLocLng"></div><div class="flex-row"><input type="number" id="editLocRadius"><input type="text" id="editLocProject"></div><button class="btn-secondary" id="updateLocationBtn">💾 UPDATE</button><button class="btn-secondary" onclick="closeModal('editLocModal')">BATAL</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
@@ -113,7 +109,7 @@ const ADMIN_BASE = "https://absensionline5.sapammeded.workers.dev";
 const MASTER_KEY = "meded7373";
 const GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxrWc2Wz3Mmm-hWHQO984zglIDFpd1_RdMXKMS0IRfN3ITJLQcfS1p1VA-OGp_1aEgY/exec";
 
-// ==================== STATE MANAGEMENT ====================
+// ==================== STATE ====================
 let currentGPS = null;
 let qrId = null;
 let nonce = null;
@@ -126,21 +122,11 @@ let cameraStream = null;
 let geoWatchId = null;
 let allLogs = [];
 let networkOnline = navigator.onLine;
-let todayStatus = { masuk: false, pulang: false, masukId: null, pulangId: null };
 
-// ==================== HELPER FUNCTIONS ====================
 function $(id) { return document.getElementById(id); }
 
 function getWIBDate() { 
     return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })); 
-}
-
-function WIB_TIME() { 
-    return getWIBDate().toLocaleTimeString('id-ID', { hour12: false }); 
-}
-
-function getTodayDate() {
-    return getWIBDate().toISOString().split('T')[0];
 }
 
 function getTimestamp() { return Date.now(); }
@@ -152,7 +138,7 @@ function addLog(msg, isError = false) {
     entry.style.borderBottom = '1px solid #1a1a1a';
     entry.style.padding = '4px 0';
     entry.style.fontSize = '0.65rem';
-    entry.innerHTML = `[${WIB_TIME()}] ${msg}`;
+    entry.innerHTML = `[${new Date().toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta'})}] ${msg}`;
     logDiv.appendChild(entry);
     logDiv.scrollTop = logDiv.scrollHeight;
     while (logDiv.children.length > 100) logDiv.removeChild(logDiv.firstChild);
@@ -191,44 +177,6 @@ async function generateHMAC(message) {
     return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
 }
 
-// ==================== CEK STATUS ABSEN HARI INI ====================
-async function checkTodayStatus() {
-    if (!adminToken) return;
-    try {
-        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/dashboard`, {
-            headers: { "Authorization": `Bearer ${adminToken}` }
-        }, 10000, 2);
-        if (data.ok && data.logs) {
-            const today = getTodayDate();
-            // Filter berdasarkan tanggal dari waktu lengkap
-            const todayLogs = data.logs.filter(l => l.waktu && l.waktu.includes(new Date().toLocaleDateString('id-ID')));
-            
-            const masukLog = todayLogs.find(l => l.status === "MASUK");
-            const pulangLog = todayLogs.find(l => l.status === "PULANG");
-            
-            todayStatus.masuk = !!masukLog;
-            todayStatus.pulang = !!pulangLog;
-            todayStatus.masukId = masukLog?.id;
-            todayStatus.pulangId = pulangLog?.id;
-            
-            const masukTime = masukLog ? masukLog.waktu.split(' ')[1] : "";
-            const pulangTime = pulangLog ? pulangLog.waktu.split(' ')[1] : "";
-            
-            $('todayMasuk').innerHTML = todayStatus.masuk ? `✅ ${masukTime}` : "❌ Belum absen masuk";
-            $('todayPulang').innerHTML = todayStatus.pulang ? `✅ ${pulangTime}` : "❌ Belum absen pulang";
-            
-            // Update tombol
-            const masukBtn = $('absenMasukBtn');
-            const pulangBtn = $('absenPulangBtn');
-            if (masukBtn) masukBtn.disabled = todayStatus.masuk;
-            // Tombol pulang aktif hanya jika sudah masuk dan belum pulang
-            if (pulangBtn) pulangBtn.disabled = todayStatus.pulang || !todayStatus.masuk;
-            
-            addLog(`📊 Status: MASUK=${todayStatus.masuk}, PULANG=${todayStatus.pulang}`, false);
-        }
-    } catch(e) { addLog("⚠️ Gagal cek status: " + e.message, true); }
-}
-
 // ==================== SYSTEM STATUS ====================
 function isSystemReady() {
     const gpsValid = currentGPS && currentGPS.coords;
@@ -237,12 +185,6 @@ function isSystemReady() {
 
 function updateSystemUI() {
     const ready = isSystemReady();
-    const masukBtn = $('absenMasukBtn');
-    const pulangBtn = $('absenPulangBtn');
-    
-    if (masukBtn) masukBtn.disabled = !ready || todayStatus.masuk;
-    if (pulangBtn) pulangBtn.disabled = !ready || todayStatus.pulang || !todayStatus.masuk;
-    
     $('sysStatus').innerHTML = ready ? "🟢 SIAP" : (networkOnline ? "🔴 BELUM SIAP" : "⚠️ OFFLINE");
     
     if (currentGPS && currentGPS.coords) {
@@ -297,7 +239,7 @@ async function capturePhoto() {
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     ctx.restore();
-    const waktuStr = WIB_TIME();
+    const waktuStr = new Date().toLocaleTimeString('id-ID', {timeZone:'Asia/Jakarta'});
     ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.fillRect(0, canvas.height - 28, canvas.width, 28);
     ctx.font = "10px 'Courier New'";
@@ -321,20 +263,17 @@ function initGPS() {
 }
 
 // ==================== FETCH ====================
-async function fetchWithTimeout(url, options = {}, timeoutMs = 15000, retries = 2) {
-    for (let attempt = 0; attempt <= retries; attempt++) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-            const response = await fetch(url, { ...options, signal: controller.signal });
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.json();
-        } catch(e) {
-            clearTimeout(timeoutId);
-            if (attempt === retries) throw e;
-            await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-        }
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    } catch(e) {
+        clearTimeout(timeoutId);
+        throw e;
     }
 }
 
@@ -391,7 +330,7 @@ async function loadLocations() {
     }
 }
 
-// ==================== ABSEN SUBMIT ====================
+// ==================== ABSEN SUBMIT (FIX: TOMBOL MASUK & PULANG BISA DIKLIK) ====================
 async function submitAbsen(jenis) {
     if (isSubmitting) {
         addLog("⏳ Sedang memproses, tunggu...", true);
@@ -400,19 +339,6 @@ async function submitAbsen(jenis) {
     
     if (!isSystemReady()) {
         alert("SISTEM BELUM SIAP!\nPastikan GPS, QR, Challenge token valid.");
-        return;
-    }
-    
-    if (jenis === "MASUK" && todayStatus.masuk) {
-        alert("Anda sudah absen MASUK hari ini!");
-        return;
-    }
-    if (jenis === "PULANG" && todayStatus.pulang) {
-        alert("Anda sudah absen PULANG hari ini!");
-        return;
-    }
-    if (jenis === "PULANG" && !todayStatus.masuk) {
-        alert("Anda belum absen MASUK! Silakan absen masuk dulu.");
         return;
     }
     
@@ -431,8 +357,6 @@ async function submitAbsen(jenis) {
     btn.innerHTML = jenis === "MASUK" ? "⚡ PROSES MASUK..." : "⚡ PROSES PULANG...";
     addLog(`🚀 Memulai proses absen ${jenis}...`);
     
-    let payload = null;
-    
     try {
         const photoBase64 = await capturePhoto();
         const timestamp = getTimestamp();
@@ -441,7 +365,7 @@ async function submitAbsen(jenis) {
         const rawSignature = `${qrId}${nonce}${userName.toUpperCase()}${jenis}${timestamp}`;
         const signature = await generateHMAC(rawSignature);
         
-        payload = {
+        const payload = {
             qrId, nonce, signature,
             nama: userName.toUpperCase(),
             lat: parseFloat(lat), lng: parseFloat(lng),
@@ -460,22 +384,16 @@ async function submitAbsen(jenis) {
         if (result && result.ok) {
             addLog(`✅ ABSEN ${jenis} BERHASIL! ID: ${result.logId}`);
             
-            // Format waktu lengkap untuk spreadsheet
-            const now = new Date();
-            const options = { 
-                timeZone: 'Asia/Jakarta',
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            const waktuLengkap = now.toLocaleString('id-ID', options);
-            
             // Kirim ke Google Sheets
             if (GOOGLE_SHEETS_WEBHOOK) {
+                const now = new Date();
+                const options = { 
+                    timeZone: 'Asia/Jakarta',
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                };
+                const waktuLengkap = now.toLocaleString('id-ID', options);
+                
                 const sheetData = {
                     waktu: waktuLengkap,
                     nama: userName.toUpperCase(),
@@ -484,8 +402,7 @@ async function submitAbsen(jenis) {
                     jarak: Math.round(currentGPS.coords.accuracy) + "m",
                     akurasi: Math.round(currentGPS.coords.accuracy) + "m",
                     status: jenis,
-                    lat: lat,
-                    lng: lng,
+                    lat: lat, lng: lng,
                     fingerprint: fingerprint.substring(0, 20),
                     foto_hash: result.logId,
                     id: result.logId,
@@ -497,15 +414,10 @@ async function submitAbsen(jenis) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(sheetData)
                 }).catch(e => console.log("Sheet error:", e));
-                addLog("📊 Data dikirim ke Google Sheets", false);
             }
             
-            alert(`✅ ABSEN ${jenis} BERHASIL!\nLokasi: ${selectedLocation.name}\nJarak: ${Math.round(currentGPS.coords.accuracy)}m\nID: ${result.logId}`);
-            
-            // Refresh status setelah absen
-            await checkTodayStatus();
-            
-            setTimeout(() => location.reload(), 3000);
+            alert(`✅ ABSEN ${jenis} BERHASIL!\nLokasi: ${selectedLocation.name}\nID: ${result.logId}`);
+            setTimeout(() => location.reload(), 2000);
         } else {
             throw new Error(result?.code || result?.msg || 'Unknown error');
         }
@@ -515,13 +427,13 @@ async function submitAbsen(jenis) {
         alert("Error: " + e.message);
     } finally {
         isSubmitting = false;
-        btn.disabled = !isSystemReady();
+        btn.disabled = false;
         btn.innerHTML = jenis === "MASUK" ? "✅ ABSEN MASUK" : "🏠 ABSEN PULANG";
         updateSystemUI();
     }
 }
 
-// ==================== ADMIN FUNCTIONS (disingkat) ====================
+// ==================== ADMIN FUNCTIONS ====================
 async function adminLogin() {
     const pass = $('adminPassword').value.trim();
     if (!pass) { alert("MASUKKAN PASSWORD!"); return; }
@@ -529,14 +441,13 @@ async function adminLogin() {
         const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ password: pass })
-        }, 10000, 2);
+        }, 10000);
         if (data.ok && data.token) {
             adminToken = data.token;
             localStorage.setItem("gip_admin_token", adminToken);
             $('adminLoginDiv').style.display = 'none';
             $('adminPanel').style.display = 'block';
             await loadDashboard();
-            await checkTodayStatus();
             addLog("✅ Admin login berhasil");
         } else { alert("❌ PASSWORD SALAH!"); }
     } catch(e) { alert("Error: " + e.message); }
@@ -550,12 +461,18 @@ async function loadDashboard() {
     try {
         const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/dashboard`, {
             headers: { "Authorization": `Bearer ${adminToken}` }
-        }, 10000, 2);
+        }, 10000);
         if (!data.ok) throw new Error("INVALID");
         allLogs = data.logs || [];
         const stats = data.stats || {};
         $('statTotal').innerHTML = stats.total || 0;
         $('statToday').innerHTML = stats.today || 0;
+        
+        const masukCount = allLogs.filter(l => l.status === "MASUK").length;
+        const pulangCount = allLogs.filter(l => l.status === "PULANG").length;
+        $('statMasuk').innerHTML = masukCount;
+        $('statPulang').innerHTML = pulangCount;
+        
         renderLogs();
         addLog(`✅ Dashboard loaded: ${allLogs.length} logs`);
     } catch(e) { addLog("❌ Load dashboard error: " + e.message, true); }
@@ -563,21 +480,25 @@ async function loadDashboard() {
 
 function renderLogs() {
     const tbody = $('adminTableBody');
-    if (!allLogs.length) { tbody.innerHTML = '<tr><td colspan="10">📭 Tidak ada数据</td></tr>'; return; }
+    const search = $('searchInput')?.value.toLowerCase() || '';
+    const filtered = allLogs.filter(l => !search || l.nama?.toLowerCase().includes(search));
+    
+    if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6">📭 Tidak ada data</td></tr>'; return; }
+    
     let html = '';
-    allLogs.slice(0, 200).forEach((l, i) => {
-        let st = l.status || (l.alert ? "ALERT" : "NORMAL");
+    filtered.slice(0, 100).forEach((l, i) => {
+        let statusClass = l.status === "MASUK" ? 'badge-masuk' : (l.status === "PULANG" ? 'badge-pulang' : 'badge-normal');
+        let statusText = l.status || (l.alert ? "ALERT" : "NORMAL");
+        let waktu = l.waktu || '-';
+        if (waktu !== '-' && waktu.length > 16) waktu = waktu.substring(0, 16);
+        
         html += `<tr>
-            <td><input type="checkbox" class="log-checkbox" data-id="${l.id}"></td>
             <td>${i+1}</td>
             <td>${l.nama || '-'}</td>
-            <td>${l.waktu || '-'}</td>
-            <td>${l.project || '-'}</td>
+            <td>${waktu}</td>
             <td>${l.location_name || '-'}</td>
-            <td>${l.jarak || 0}m</td>
-            <td>${l.accuracy || 0}m</td>
-            <td><span class="badge ${st === 'MASUK' ? 'badge-masuk' : (st === 'PULANG' ? 'badge-pulang' : 'badge-normal')}">${st}</span></td>
-            <td><img src="${ADMIN_BASE}/api/admin/photo-viewer?hash=${l.photo_hash}" class="photo-thumb" onclick="viewPhoto('${l.photo_hash}')" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect width=%2250%22 height=%2250%22 fill=%22%23333%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23666%22 dy=%22.3em%22 text-anchor=%22middle%22%3ENO%3C/text%3E%3C/svg%3E'"></td>
+            <td><span class="badge ${statusClass}">${statusText}</span></td>
+            <td><img src="${ADMIN_BASE}/api/admin/photo-viewer?hash=${l.photo_hash}" class="photo-thumb" onclick="viewPhoto('${l.photo_hash}')" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect width=%2240%22 height=%2240%22 fill=%22%23333%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23666%22 dy=%22.3em%22 text-anchor=%22middle%22%3E?%3C/text%3E%3C/svg%3E'"></td>
         </tr>`;
     });
     tbody.innerHTML = html;
@@ -589,12 +510,19 @@ async function viewPhoto(hash) {
     $('photoModal').style.display = 'flex';
 }
 
-async function deleteSelectedLogs() { alert("Fitur dalam pengembangan"); }
-async function deleteAllData() { alert("Fitur dalam pengembangan"); }
-async function exportLogs() { alert("Fitur dalam pengembangan"); }
-async function unbanDevice() { alert("Fitur dalam pengembangan"); }
-async function resetDevice() { alert("Fitur dalam pengembangan"); }
-async function openSettings() { alert("⚙️ Settings"); }
+async function exportLogs() {
+    if (!adminToken) return;
+    try {
+        const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/export`, {
+            headers: { "Authorization": `Bearer ${adminToken}` }
+        }, 10000);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = `absensi_${Date.now()}.json`; a.click();
+        URL.revokeObjectURL(url);
+        addLog("✅ Export berhasil");
+    } catch(e) { alert("Error: " + e.message); }
+}
 
 // ==================== LOCATION MANAGEMENT ====================
 async function openLocationManager() {
@@ -604,7 +532,7 @@ async function openLocationManager() {
         const data = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ password: pass })
-        }, 10000, 2);
+        }, 10000);
         if (!data.ok || !data.token) { alert("❌ PASSWORD SALAH!"); return; }
         adminToken = data.token;
         localStorage.setItem("gip_admin_token", adminToken);
@@ -654,12 +582,12 @@ async function updateLocation() {
     try {
         const login = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
             method: "POST", body: JSON.stringify({ password: pass })
-        }, 10000, 2);
+        }, 10000);
         if (!login.ok || !login.token) { alert("❌ PASSWORD SALAH!"); return; }
         await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, {
             method: "POST", headers: { "Authorization": `Bearer ${login.token}` },
             body: JSON.stringify({ action: "UPDATE", id, data: { name, lat, lng, radius, project } })
-        }, 10000, 2);
+        }, 10000);
         alert("✅ LOKASI DIUPDATE!");
         closeModal('editLocModal');
         await loadLocations();
@@ -674,12 +602,12 @@ window.deleteLocation = async function(id) {
     try {
         const login = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
             method: "POST", body: JSON.stringify({ password: pass })
-        }, 10000, 2);
+        }, 10000);
         if (!login.ok || !login.token) { alert("❌ PASSWORD SALAH!"); return; }
         await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, {
             method: "POST", headers: { "Authorization": `Bearer ${login.token}` },
             body: JSON.stringify({ action: "DELETE", id })
-        }, 10000, 2);
+        }, 10000);
         alert("✅ LOKASI DIHAPUS!");
         await refreshLocationList();
         await loadLocations();
@@ -698,12 +626,12 @@ async function saveNewLocation() {
     try {
         const login = await fetchWithTimeout(`${ADMIN_BASE}/api/admin/login`, {
             method: "POST", body: JSON.stringify({ password: pass })
-        }, 10000, 2);
+        }, 10000);
         if (!login.ok || !login.token) { alert("❌ PASSWORD SALAH!"); return; }
         await fetchWithTimeout(`${ADMIN_BASE}/api/admin/locations`, {
             method: "POST", headers: { "Authorization": `Bearer ${login.token}` },
             body: JSON.stringify({ action: "ADD", data: { name, lat, lng, radius, project } })
-        }, 10000, 2);
+        }, 10000);
         alert("✅ LOKASI TERSIMPAN!");
         closeModal('locModal');
         await loadLocations();
@@ -727,28 +655,12 @@ function showZoomQR() {
     $('qrModal').style.display = 'flex';
 }
 
-async function syncQueue() { addLog("📦 Queue sync - siap", false); }
-
-// ==================== NETWORK MONITOR & TIMERS ====================
-function setupNetworkMonitor() {
-    window.addEventListener('online', async () => {
-        networkOnline = true;
-        addLog("🌐 Koneksi ONLINE", false);
-        await refreshQRToken();
-        await refreshChallengeToken();
-        await loadLocations();
-        updateSystemUI();
-    });
-    window.addEventListener('offline', () => {
-        networkOnline = false;
-        addLog("⚠️ OFFLINE", true);
-        updateSystemUI();
-    });
-}
-
+// ==================== TIMERS ====================
 function startTimers() {
     setInterval(() => {
-        $('wibTime').innerHTML = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' });
+        const now = new Date();
+        const options = { timeZone: 'Asia/Jakarta', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        $('wibTime').innerHTML = now.toLocaleString('id-ID', options);
     }, 1000);
     
     let isRefreshing = false;
@@ -769,6 +681,23 @@ function startTimers() {
     setInterval(async () => {
         if (!isSubmitting && networkOnline) await refreshChallengeToken();
     }, 170000);
+}
+
+// ==================== NETWORK MONITOR ====================
+function setupNetworkMonitor() {
+    window.addEventListener('online', async () => {
+        networkOnline = true;
+        addLog("🌐 Koneksi ONLINE", false);
+        await refreshQRToken();
+        await refreshChallengeToken();
+        await loadLocations();
+        updateSystemUI();
+    });
+    window.addEventListener('offline', () => {
+        networkOnline = false;
+        addLog("⚠️ OFFLINE", true);
+        updateSystemUI();
+    });
 }
 
 // ==================== BOOT ====================
@@ -802,11 +731,14 @@ async function boot() {
     if (savedToken) {
         adminToken = savedToken;
         await loadDashboard();
-        await checkTodayStatus();
         addLog("👑 Admin session restored", false);
     }
     
     addLog("✅ SISTEM SIAP! (MASUK & PULANG)");
+    
+    // Set tombol tetap aktif (tidak diblokir)
+    $('absenMasukBtn').disabled = false;
+    $('absenPulangBtn').disabled = false;
 }
 
 // ==================== EVENT LISTENERS ====================
@@ -820,21 +752,15 @@ $('absenMasukBtn').onclick = () => submitAbsen("MASUK");
 $('absenPulangBtn').onclick = () => submitAbsen("PULANG");
 $('adminBtn').onclick = () => { $('adminLoginDiv').style.display = 'block'; $('adminPanel').style.display = 'none'; $('adminModal').style.display = 'flex'; };
 $('manageLocBtn').onclick = openLocationManager;
-$('syncQueueBtn').onclick = syncQueue;
 $('zoomQrBtn').onclick = showZoomQR;
 $('loginAdminBtn').onclick = adminLogin;
 $('refreshDashboardBtn').onclick = loadDashboard;
 $('exportLogsBtn').onclick = exportLogs;
-$('deleteSelectedBtn').onclick = deleteSelectedLogs;
-$('deleteAllBtn').onclick = deleteAllData;
-$('unbanDeviceBtn').onclick = unbanDevice;
-$('resetDeviceBtn').onclick = resetDevice;
-$('settingsBtn').onclick = openSettings;
 $('saveLocationBtn').onclick = saveNewLocation;
 $('autoGpsBtn').onclick = autoFillGPS;
 $('updateLocationBtn').onclick = updateLocation;
-$('filterProject').onchange = renderLogs;
-$('searchInput').oninput = renderLogs;
+$('filterProject')?.addEventListener('change', renderLogs);
+$('searchInput')?.addEventListener('input', renderLogs);
 </script>
 </body>
 </html>
