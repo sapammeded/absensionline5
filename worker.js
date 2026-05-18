@@ -1,373 +1,485 @@
-// ==================== GIP ABSENSI WORKER - FINAL ====================
-const ADMIN_PASSWORD = "meded7373";
-const MASTER_KEY = "meded7373";
-const GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxrWc2Wz3Mmm-hWHQO984zglIDFpd1_RdMXKMS0IRfN3ITJLQcfS1p1VA-OGp_1aEgY/exec";
+// ==================== GIP ELITE WORKER v4.5 SUPREME MASTER ====================
+// SIMPLE DEPLOY VERSION - PLATINUM MASTER PRODUCTION FINAL FIX
+// NO WRANGLER NEEDED
+// HP FRIENDLY
+
+// KREDENSIAL RANDOM DAN KUAT UNTUK OPERASIONAL LIVE
+const ADMIN_PASSWORD = "GIP_Elite_2026_X9zK";
+const ADMIN_TOKEN = "elite_token_x92kq_2026";
+
+// CONFIGURATION MASTER KEY SECURE
+const MASTER_KEY = "meded_absensi_2026_secure";
+
+// GANTI URL GAS DI SINI
+const GOOGLE_SHEETS_WEBHOOK =
+  "https://script.google.com/macros/s/AKfycbyB_Uu7VtBZzGaCOwrq6vltJ8Bg8SnBiQW9N_ZIx9fmhO93RHhm7aPZkstUSkOAMydDig/exec";
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Content-Type': 'application/json'
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Content-Type": "application/json"
 };
 
-function jsonResponse(data, status = 200) {
+// ==================== DURABLE OBJECT ====================
+export class AtomicConsumeDO {
+  constructor(state, env) {
+    this.state = state;
+    this.storage = state.storage;
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname === "/consume" && request.method === "POST") {
+      const body = await request.json();
+      const id = body.id;
+      const ttl = body.ttl || 300;
+
+      const result = await this.state.blockConcurrencyWhile(async () => {
+        const now = Date.now();
+        const existing = await this.storage.get(id);
+
+        if (existing && existing.expires > now) {
+          return { consumed: false };
+        }
+
+        await this.storage.put(id, {
+          consumed: true,
+          expires: now + (ttl * 1000)
+        });
+
+        return { consumed: true };
+      });
+
+      return new Response(JSON.stringify(result), { status: 200 });
+    }
+    return new Response("Not found", { status: 404 });
+  }
+}
+
+// ==================== MEMORY RATE LIMIT ====================
+const rateMap = new Map();
+function checkRateLimit(key, limit = 10, windowMs = 60000) {
+  const now = Date.now();
+  const entry = rateMap.get(key);
+
+  if (!entry || entry.reset < now) {
+    rateMap.set(key, { count: 1, reset: now + windowMs });
+    return true;
+  }
+
+  if (entry.count >= limit) return false;
+  entry.count++;
+  return true;
+}
+
+// ==================== PHOTO REPLAY ====================
+const photoReplayMap = new Map();
+async function simpleHash(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .slice(0, 16)
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function getPhotoHash(base64) {
+  const len = base64.length;
+  const prefix = base64.substring(0, 500);
+  const middle = base64.substring(Math.floor(len / 2) - 50, Math.floor(len / 2) + 50);
+  const hash = await simpleHash(prefix + middle);
+  return `${len}:${hash}`;
+}
+
+function isReplay(hash) {
+  const now = Date.now();
+  const existing = photoReplayMap.get(hash);
+  if (existing && existing > now) return true;
+  photoReplayMap.set(hash, now + 300000);
+  return false;
+}
+
+// ==================== HELPERS ====================
+function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: CORS_HEADERS });
 }
 
-function generateId() {
-  return crypto.randomUUID();
+async function signHMAC(message) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", encoder.encode(MASTER_KEY),
+    { name: "HMAC", hash: "SHA-256" },
+    false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function getKV(env, key, defaultValue = null) {
+// ==================== WIB DATE LOGIC ====================
+function getWIBDate() {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+}
+
+function formatWIB(timestamp) {
+  return new Date(timestamp).toLocaleString("id-ID", {
+    timeZone: "Asia/Jakarta", weekday: "long", year: "numeric", month: "long",
+    day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+}
+
+async function getKV(env, key, fallback = null) {
   try {
     const data = await env.GIP_KV.get(key);
-    return data ? JSON.parse(data) : defaultValue;
-  } catch { return defaultValue; }
+    return data ? JSON.parse(data) : fallback;
+  } catch { return fallback; }
 }
 
-async function setKV(env, key, value) {
-  await env.GIP_KV.put(key, JSON.stringify(value));
-}
-
-async function initDefaultData(env) {
-  let locations = await getKV(env, 'locations', null);
-  if (!locations) {
-    locations = [{
-      id: generateId(),
-      name: 'KANTOR PUSAT',
-      lat: -6.200000,
-      lng: 106.816666,
-      radius: 100,
-      project: 'DEFAULT',
-      created_at: Date.now()
-    }];
-    await setKV(env, 'locations', locations);
+async function setKV(env, key, value, ttl = null) {
+  if (value === null) {
+    await env.GIP_KV.delete(key);
+    return;
   }
-  if (!await getKV(env, 'absensi_logs', null)) await setKV(env, 'absensi_logs', []);
-  if (!await getKV(env, 'banned_devices', null)) await setKV(env, 'banned_devices', []);
-  if (!await getKV(env, 'admin_sessions', null)) await setKV(env, 'admin_sessions', {});
+  await env.GIP_KV.put(key, JSON.stringify(value), ttl ? { expirationTtl: ttl } : {});
 }
 
-async function forwardToSheets(logEntry) {
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+// ==================== SHEETS PUSH WITH TIMEOUT ====================
+async function pushToSheets(entry) {
   if (!GOOGLE_SHEETS_WEBHOOK) return;
+  const timestamp = Date.now();
+  const payload = { ...entry, _timestamp: timestamp };
+  const signature = await signHMAC(JSON.stringify(payload));
+
   try {
-    const sheetData = {
-      waktu: logEntry.waktu,
-      nama: logEntry.nama,
-      lokasi: logEntry.location_name,
-      project: logEntry.project,
-      jarak: logEntry.jarak + "m",
-      akurasi: logEntry.accuracy + "m",
-      status: logEntry.status,
-      lat: logEntry.lat,
-      lng: logEntry.lng,
-      fingerprint: logEntry.fingerprint?.substring(0, 20) || "-",
-      foto_hash: logEntry.photo_hash,
-      id: logEntry.id,
-      timestamp: logEntry.timestamp
-    };
-    await fetch(GOOGLE_SHEETS_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sheetData)
+    const response = await fetch(GOOGLE_SHEETS_WEBHOOK, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Signature": signature,
+        "X-Timestamp": String(timestamp),
+        "X-Source": "cloudflare-worker"
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000)
     });
-  } catch(e) { console.error('Sheet forward error:', e); }
+
+    if (!response.ok) {
+      console.error("GAS ERROR:", response.status);
+    }
+  } catch (e) { 
+    console.error("Sheets push connection / timeout error:", e); 
+  }
 }
 
-// ==================== API HANDLERS ====================
-
-async function handleQRToken(env) {
-  const qrId = generateId();
-  const qrTokens = await getKV(env, 'qr_tokens', {});
-  qrTokens[qrId] = { qr_id: qrId, expires_at: Date.now() + 300000, used: false };
-  await setKV(env, 'qr_tokens', qrTokens);
-  return jsonResponse({ ok: true, qrId });
+// ==================== ATOMIC CONSUME (DO & KV FALLBACK) ====================
+async function atomicConsume(env, doId, type, id, ttl) {
+  if (!doId || !env.ATOMIC_CONSUME_DO) {
+    const key = `${type}:${id}`;
+    const existing = await getKV(env, key, null);
+    if (!existing) {
+      return false;
+    }
+    await setKV(env, key, null);
+    return true;
+  }
+  
+  const stub = env.ATOMIC_CONSUME_DO.get(doId);
+  const resp = await stub.fetch("https://internal/consume", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: `${type}:${id}`, ttl })
+  });
+  const result = await resp.json();
+  return result.consumed;
 }
 
-async function handleChallenge(env) {
-  const nonce = generateId() + '-' + Date.now();
-  const challenges = await getKV(env, 'challenges', {});
-  challenges[nonce] = { nonce, expires_at: Date.now() + 180000, used: false };
-  await setKV(env, 'challenges', challenges);
-  return jsonResponse({ ok: true, nonce });
-}
-
-async function handleGetLocations(env) {
-  return jsonResponse(await getKV(env, 'locations', []));
-}
-
-async function handleAbsen(request, env) {
+// ==================== ABSEN HANDLER ====================
+async function handleAbsen(request, env, doId, ctx) {
   try {
     const body = await request.json();
-    const { qrId, nonce, nama, lat, lng, accuracy, locationId, fingerprint, photoBase64, timestamp, jenis, signature } = body;
-    
-    if (!qrId || !nonce || !nama || !locationId || !fingerprint || !photoBase64) {
-      return jsonResponse({ ok: false, code: 'MISSING_FIELDS' }, 400);
+    const { qrId, nonce, nama, lat, lng, accuracy, locationId, fingerprint, photoBase64, timestamp, jenis } = body;
+
+    if (!qrId || !nonce || !nama || !photoBase64) {
+      return json({ ok: false, code: "INVALID" }, 400);
     }
-    
-    // Validasi QR
-    const qrTokens = await getKV(env, 'qr_tokens', {});
-    const qrToken = qrTokens[qrId];
-    if (!qrToken || qrToken.used || qrToken.expires_at < Date.now()) {
-      return jsonResponse({ ok: false, code: 'INVALID_QR' }, 400);
+
+    // PATCH FINAL B — PROTECTION SENSOR DATA / VALIDASI DATA KOORDINAT AGAR TIDAK ERROR MATEMATIKA
+    if (typeof lat !== "number" || typeof lng !== "number") {
+      return json({ ok: false, code: "GPS_INVALID" }, 400);
     }
-    qrToken.used = true;
-    await setKV(env, 'qr_tokens', qrTokens);
-    
-    // Validasi Nonce
-    const challenges = await getKV(env, 'challenges', {});
-    const challenge = challenges[nonce];
-    if (!challenge || challenge.used || challenge.expires_at < Date.now()) {
-      return jsonResponse({ ok: false, code: 'INVALID_NONCE' }, 400);
+
+    if (!photoBase64.startsWith("data:image/")) {
+      return json({ ok: false, code: "PHOTO_INVALID" }, 400);
     }
-    challenge.used = true;
-    await setKV(env, 'challenges', challenges);
-    
-    // Dapatkan lokasi
-    const locations = await getKV(env, 'locations', []);
+
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const ua = request.headers.get("User-Agent") || "unknown";
+    const rateKey = `${fingerprint}:${ip}:${ua}`;
+
+    if (!checkRateLimit(rateKey)) return json({ ok: false, code: "RATE_LIMIT" }, 429);
+
+    const now = Date.now();
+    if (Math.abs(now - timestamp) > 300000) return json({ ok: false, code: "EXPIRED" }, 400);
+
+    const qrOk = await atomicConsume(env, doId, "qr", qrId, 300);
+    if (!qrOk) return json({ ok: false, code: "QR_USED" }, 400);
+
+    const nonceOk = await atomicConsume(env, doId, "nonce", nonce, 180);
+    if (!nonceOk) return json({ ok: false, code: "NONCE_USED" }, 400);
+
+    await setKV(env, `qr:${qrId}`, null);
+    await setKV(env, `nonce:${nonce}`, null);
+
+    const photoHash = await getPhotoHash(photoBase64);
+    if (isReplay(photoHash)) return json({ ok: false, code: "PHOTO_REPLAY" }, 400);
+
+    const locations = await getKV(env, "locations", []);
     const location = locations.find(l => l.id === locationId);
-    if (!location) return jsonResponse({ ok: false, code: 'INVALID_LOCATION' }, 400);
-    
-    // Hitung jarak
-    const R = 6371000;
-    const φ1 = lat * Math.PI/180, φ2 = location.lat * Math.PI/180;
-    const Δφ = (location.lat - lat) * Math.PI/180;
-    const Δλ = (location.lng - lng) * Math.PI/180;
-    const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
-    const jarak = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const isAlert = jarak > location.radius;
-    
-    // Simpan foto
-    const encoder = new TextEncoder();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(photoBase64.substring(0, 500) + Date.now()));
-    const hashStr = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('').substring(0,32);
-    await setKV(env, `photo_${hashStr}`, photoBase64);
-    
-    const logId = 'ABS-' + Date.now() + '-' + Math.random().toString(36).substring(2,8).toUpperCase();
-    const waktuStr = new Date().toLocaleString('id-ID', { 
-      timeZone: 'Asia/Jakarta',
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-    
-    const status = jenis || (isAlert ? "ALERT" : "NORMAL");
-    
-    const logEntry = {
-      id: logId, 
-      nama: nama.toUpperCase(), 
-      fingerprint, 
-      photo_hash: hashStr,
-      lat, lng, 
-      accuracy: accuracy || 0, 
-      location_id: locationId,
-      location_name: location.name, 
-      project: location.project,
-      jarak: Math.round(jarak), 
-      timestamp: timestamp || Date.now(),
-      waktu: waktuStr, 
-      status: status,
-      alert: isAlert, 
-      anomaly: false, 
-      created_at: Date.now()
-    };
-    
-    const logs = await getKV(env, 'absensi_logs', []);
-    logs.unshift(logEntry);
-    if (logs.length > 2000) logs.pop();
-    await setKV(env, 'absensi_logs', logs);
-    
-    // Kirim ke Google Sheets
-    await forwardToSheets(logEntry);
-    
-    return jsonResponse({ ok: true, logId, waktu: waktuStr, jarak: Math.round(jarak), alert: isAlert, status: status });
-  } catch(e) {
-    console.error('Absen error:', e);
-    return jsonResponse({ ok: false, code: 'SERVER_ERROR', msg: e.message }, 500);
-  }
-}
+    if (!location) return json({ ok: false, code: "LOCATION_INVALID" }, 400);
 
-// ==================== ADMIN HANDLERS ====================
-
-async function handleAdminLogin(request, env) {
-  try {
-    const { password } = await request.json();
-    if (password !== ADMIN_PASSWORD) return jsonResponse({ ok: false, msg: 'Password salah!' }, 401);
-    const token = 'admin_' + Date.now() + '_' + Math.random().toString(36).substring(2,15);
-    const sessions = await getKV(env, 'admin_sessions', {});
-    sessions[token] = { token, expires_at: Date.now() + 86400000 };
-    await setKV(env, 'admin_sessions', sessions);
-    return jsonResponse({ ok: true, token });
-  } catch(e) {
-    return jsonResponse({ ok: false, msg: e.message }, 500);
-  }
-}
-
-async function verifyToken(env, token) {
-  const sessions = await getKV(env, 'admin_sessions', {});
-  const session = sessions[token];
-  return session && session.expires_at > Date.now();
-}
-
-async function handleAdminDashboard(request, env) {
-  const auth = request.headers.get('Authorization');
-  if (!auth || !auth.startsWith('Bearer ')) {
-    return jsonResponse({ ok: false, msg: 'Unauthorized' }, 401);
-  }
-  const token = auth.substring(7);
-  const isValid = await verifyToken(env, token);
-  if (!isValid) return jsonResponse({ ok: false, msg: 'Invalid token' }, 401);
-  
-  const logs = await getKV(env, 'absensi_logs', []);
-  const today = new Date().toISOString().split('T')[0];
-  const todayLogs = logs.filter(l => {
-    if (!l.waktu) return false;
-    return l.waktu.includes(new Date().toLocaleDateString('id-ID').split(' ')[0]);
-  });
-  
-  const formattedLogs = logs.slice(0, 500).map(l => ({
-    id: l.id, nama: l.nama, waktu: l.waktu, project: l.project || '-',
-    location_name: l.location_name || '-', jarak: l.jarak, accuracy: l.accuracy,
-    status: l.status || (l.alert ? "ALERT" : "NORMAL"),
-    alert: l.alert, anomaly: l.anomaly, photo_hash: l.photo_hash
-  }));
-  
-  return jsonResponse({
-    ok: true,
-    stats: {
-      total: logs.length,
-      today: todayLogs.length,
-      alert: logs.filter(l => l.alert).length,
-      anomaly: 0,
-      banned: 0
-    },
-    logs: formattedLogs
-  });
-}
-
-async function handlePhotoViewer(request, env) {
-  const url = new URL(request.url);
-  const hash = url.searchParams.get('hash');
-  if (!hash) return jsonResponse({ ok: false, msg: 'Missing hash' }, 400);
-  const photo = await getKV(env, `photo_${hash}`, null);
-  if (!photo) return jsonResponse({ ok: false, msg: 'Photo not found' }, 404);
-  const binary = photo.split(',')[1];
-  if (binary) {
-    const imageBuffer = Uint8Array.from(atob(binary), c => c.charCodeAt(0));
-    return new Response(imageBuffer, { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' } });
-  }
-  return jsonResponse({ ok: true, data: photo });
-}
-
-async function handleAdminLocations(request, env) {
-  const auth = request.headers.get('Authorization');
-  if (!auth || !auth.startsWith('Bearer ')) return jsonResponse({ ok: false, msg: 'Unauthorized' }, 401);
-  const token = auth.substring(7);
-  const isValid = await verifyToken(env, token);
-  if (!isValid) return jsonResponse({ ok: false, msg: 'Invalid token' }, 401);
-  
-  try {
-    const { action, id, data } = await request.json();
-    let locations = await getKV(env, 'locations', []);
-    if (action === 'ADD') {
-      const newLoc = { id: generateId(), ...data, created_at: Date.now() };
-      locations.push(newLoc);
-    } else if (action === 'UPDATE') {
-      const idx = locations.findIndex(l => l.id === id);
-      if (idx !== -1) locations[idx] = { ...locations[idx], ...data };
-    } else if (action === 'DELETE') {
-      locations = locations.filter(l => l.id !== id);
+    const distance = calculateDistance(location.lat, location.lng, lat, lng);
+    if (distance > location.radius) {
+      return json({ ok: false, code: "OUTSIDE_RADIUS", distance: Math.round(distance) }, 400);
     }
-    await setKV(env, 'locations', locations);
-    return jsonResponse({ ok: true });
-  } catch(e) {
-    return jsonResponse({ ok: false, msg: e.message }, 500);
+
+    const logs = await getKV(env, "absensi_logs", []);
+    const today = getWIBDate();
+    const duplicate = logs.find(l => l.tanggal === today && l.fingerprint === fingerprint && l.status === jenis);
+    if (duplicate) return json({ ok: false, code: "DUPLICATE" }, 400);
+
+    const logId = `ABS-${Date.now()}`;
+    const entry = {
+      id: logId,
+      nama: String(nama).toUpperCase(),
+      location_name: location.name,
+      project: location.project,
+      jarak: Math.round(distance),
+      accuracy, lat, lng, fingerprint,
+      photo_hash: photoHash,
+      timestamp,
+      waktu: formatWIB(timestamp),
+      status: jenis,
+      tanggal: today,
+      verified: true,
+      created_at: now
+    };
+
+    // PATCH FINAL A — OPTIMASI STRUKTUR ARRAY DAN MEMORY MANAGEMENT PADA RAM HP ADMIN
+        // SIMPAN FOTO TERPISAH DI KV AGAR LOG UTAMA TIDAK BENGKAK (TTL 7 HARI = 604800 DETIK)
+    await setKV(env, `photo:${photoHash}`, { photoBase64 }, 604800);
+
+    logs.unshift(entry);
+    if (logs.length > 2000) {
+      logs.length = 2000;
+    }
+    
+    await setKV(env, "absensi_logs", logs);
+
+    ctx.waitUntil(pushToSheets(entry));
+    
+    return json({ ok: true, id: logId, distance: Math.round(distance) });
+  } catch (e) {
+    return json({ ok: false, error: String(e) }, 500);
   }
 }
 
-async function handleDeleteAll(request, env) {
-  const auth = request.headers.get('Authorization');
-  if (!auth || !auth.startsWith('Bearer ')) return jsonResponse({ ok: false, msg: 'Unauthorized' }, 401);
-  const token = auth.substring(7);
-  const isValid = await verifyToken(env, token);
-  if (!isValid) return jsonResponse({ ok: false, msg: 'Invalid token' }, 401);
-  
-  try {
-    await setKV(env, 'absensi_logs', []);
-    return jsonResponse({ ok: true, msg: 'All data deleted' });
-  } catch(e) {
-    return jsonResponse({ ok: false, msg: e.message }, 500);
+// ==================== INIT DATA ====================
+async function initData(env) {
+  let locations = await getKV(env, "locations", null);
+  if (!locations || locations.length === 0) {
+    locations = [
+      {
+        id: "loc1",
+        name: "KANTOR PUSAT",
+        lat: -6.200000,
+        lng: 106.816666,
+        radius: 100,
+        project: "DEFAULT",
+        created_at: Date.now()
+      }
+    ];
+    await setKV(env, "locations", locations);
+  }
+
+  let logs = await getKV(env, "absensi_logs", null);
+  if (!logs) {
+    await setKV(env, "absensi_logs", []);
   }
 }
 
-async function handleBulkDelete(request, env) {
-  const auth = request.headers.get('Authorization');
-  if (!auth || !auth.startsWith('Bearer ')) return jsonResponse({ ok: false, msg: 'Unauthorized' }, 401);
-  const token = auth.substring(7);
-  const isValid = await verifyToken(env, token);
-  if (!isValid) return jsonResponse({ ok: false, msg: 'Invalid token' }, 401);
-  
-  try {
-    const { ids } = await request.json();
-    let logs = await getKV(env, 'absensi_logs', []);
-    const deleted = ids.length;
-    logs = logs.filter(l => !ids.includes(l.id));
-    await setKV(env, 'absensi_logs', logs);
-    return jsonResponse({ ok: true, deleted });
-  } catch(e) {
-    return jsonResponse({ ok: false, msg: e.message }, 500);
-  }
-}
-
-async function handleExport(request, env) {
-  const auth = request.headers.get('Authorization');
-  if (!auth || !auth.startsWith('Bearer ')) return jsonResponse({ ok: false, msg: 'Unauthorized' }, 401);
-  const token = auth.substring(7);
-  const isValid = await verifyToken(env, token);
-  if (!isValid) return jsonResponse({ ok: false, msg: 'Invalid token' }, 401);
-  
-  const logs = await getKV(env, 'absensi_logs', []);
-  return jsonResponse({ ok: true, data: logs });
-}
-
-// ==================== MAIN HANDLER ====================
+// ==================== FETCH HANDLER ====================
 export default {
   async fetch(request, env, ctx) {
-    await initDefaultData(env);
-    ctx.waitUntil(Promise.resolve());
-    
+    await initData(env);
+
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
-    
-    if (method === 'OPTIONS') {
-      return new Response(null, { headers: CORS_HEADERS });
+
+    if (method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
+
+    if (path === "/" || path === "/health") {
+      return json({ ok: true, service: "GIP Worker", status: "ACTIVE" });
+    }
+
+    if (path === "/api/qr-token" && method === "GET") {
+      const qrId = crypto.randomUUID();
+      await setKV(env, `qr:${qrId}`, { created_at: Date.now() }, 300);
+      return json({ ok: true, qrId });
+    }
+
+    if (path === "/api/challenge" && method === "GET") {
+      const nonce = crypto.randomUUID();
+      await setKV(env, `nonce:${nonce}`, { created_at: Date.now() }, 180);
+      return json({ ok: true, nonce });
+    }
+
+    if (path === "/api/locations" && method === "GET") {
+      const locations = await getKV(env, "locations", []);
+      return json(locations);
+    }
+
+    if (path === "/api/admin/login" && method === "POST") {
+      try {
+        const body = await request.json();
+        if ((body.password || "") !== ADMIN_PASSWORD) {
+          return json({ ok: false, error: "PASSWORD_SALAH" }, 401);
+        }
+        return json({ ok: true, token: ADMIN_TOKEN, expires_in: 86400 });
+      } catch (e) { return json({ ok: false, error: String(e) }, 500); }
+    }
+
+    // ==================== ADMIN LOCATIONS MANAGEMENT (AUTH LOCKED) ====================
+    if (path === "/api/admin/locations" && method === "POST") {
+      // PATCH FINAL C — CASE-INSENSITIVE HEADER EVALUATION AGAR COMPATIBLE DENGAN SEMUA BROWSER HP
+      const auth = request.headers.get("Authorization") || request.headers.get("authorization") || "";
+      if (auth !== `Bearer ${ADMIN_TOKEN}`) {
+        return json({ ok: false, error: "UNAUTHORIZED" }, 401);
+      }
+
+      try {
+        const body = await request.json();
+        const { action, id, data } = body;
+        let locations = await getKV(env, "locations", []);
+
+        if (action === "ADD") {
+          locations.push({
+            id: crypto.randomUUID(),
+            name: data.name || "",
+            lat: Number(data.lat),
+            lng: Number(data.lng),
+            radius: Number(data.radius || 100),
+            project: data.project || "",
+            created_at: Date.now()
+          });
+        } else if (action === "UPDATE") {
+          const idx = locations.findIndex(l => l.id === id);
+          if (idx !== -1) {
+            locations[idx] = { ...locations[idx], ...data, lat: Number(data.lat), lng: Number(data.lng), radius: Number(data.radius) };
+          }
+        } else if (action === "DELETE") {
+          locations = locations.filter(l => l.id !== id);
+        }
+
+        await setKV(env, "locations", locations);
+        return json({ ok: true, total: locations.length });
+      } catch (e) { return json({ ok: false, error: String(e) }, 500); }
+    }
+
+    // ==================== ADMIN DASHBOARD REAL-TIME (AUTH LOCKED) ====================
+    if (path === "/api/admin/dashboard" && method === "GET") {
+      // PATCH FINAL C — CASE-INSENSITIVE HEADER EVALUATION AGAR COMPATIBLE DENGAN SEMUA BROWSER HP
+      const auth = request.headers.get("Authorization") || request.headers.get("authorization") || "";
+      if (auth !== `Bearer ${ADMIN_TOKEN}`) {
+        return json({ ok: false, error: "UNAUTHORIZED" }, 401);
+      }
+
+      const logs = await getKV(env, "absensi_logs", []);
+      const todayStr = getWIBDate();
+      const todayLogs = logs.filter(l => l.tanggal === todayStr);
+
+      return json({
+        ok: true,
+        stats: {
+          total: logs.length,
+          today: todayLogs.length,
+          masuk: todayLogs.filter(l => l.status === "MASUK").length,
+          pulang: todayLogs.filter(l => l.status === "PULANG").length
+        },
+        logs: logs.slice(0, 100)
+      });
+    }
+
+    if (path === "/api/absen" && method === "POST") {
+      let doId = null;
+      if (env.ATOMIC_CONSUME_DO) {
+        doId = env.ATOMIC_CONSUME_DO.idFromName("global");
+      }
+      return await handleAbsen(request, env, doId, ctx);
+    }
+
+    // ==================== PHOTO VIEWER SECURE VIA URL TOKEN ====================
+    if (path === "/api/admin/photo-viewer" && method === "GET") {
+      const tokenParam = url.searchParams.get("token") || "";
+      if (tokenParam !== ADMIN_TOKEN) {
+        return new Response("UNAUTHORIZED", { status: 401, headers: CORS_HEADERS });
+      }
+
+      const hash = url.searchParams.get("hash") || "";
+      const photoData = await getKV(env, `photo:${hash}`, null);
+
+      if (!photoData || !photoData.photoBase64) {
+        return new Response("PHOTO_NOT_FOUND", { status: 404, headers: CORS_HEADERS });
+      }
+
+      try {
+        const parts = photoData.photoBase64.split(",");
+        const mime = parts[0].match(/:(.*?);/)[1];
+        const binaryStr = atob(parts[1]);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        return new Response(bytes.buffer, {
+          headers: {
+            "Content-Type": mime,
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=86400"
+          }
+        });
+      } catch (e) {
+        return new Response("DECODE_ERROR", { status: 500, headers: CORS_HEADERS });
+      }
+    }
+
+    // ==================== EXPORT LOGS FULL (TANPA SLICE 100) ====================
+    if (path === "/api/admin/export" && method === "GET") {
+      const auth = request.headers.get("Authorization") || request.headers.get("authorization") || "";
+      if (auth !== `Bearer ${ADMIN_TOKEN}`) {
+        return json({ ok: false, error: "UNAUTHORIZED" }, 401);
+      }
+
+      const logs = await getKV(env, "absensi_logs", []);
+      return json({
+        ok: true,
+        total: logs.length,
+        logs: logs
+      });
     }
     
-    // Route mapping
-    const routeHandlers = {
-      '/api/qr-token': { method: 'GET', handler: () => handleQRToken(env) },
-      '/api/challenge': { method: 'GET', handler: () => handleChallenge(env) },
-      '/api/locations': { method: 'GET', handler: () => handleGetLocations(env) },
-      '/api/absen': { method: 'POST', handler: () => handleAbsen(request, env) },
-      '/api/admin/login': { method: 'POST', handler: () => handleAdminLogin(request, env) },
-      '/api/admin/dashboard': { method: 'GET', handler: () => handleAdminDashboard(request, env) },
-      '/api/admin/photo-viewer': { method: 'GET', handler: () => handlePhotoViewer(request, env) },
-      '/api/admin/locations': { method: 'POST', handler: () => handleAdminLocations(request, env) },
-      '/api/admin/delete-all': { method: 'POST', handler: () => handleDeleteAll(request, env) },
-      '/api/admin/logs/bulk': { method: 'POST', handler: () => handleBulkDelete(request, env) },
-      '/api/admin/export': { method: 'GET', handler: () => handleExport(request, env) }
-    };
-    
-    const route = routeHandlers[path];
-    if (route && route.method === method) {
-      return await route.handler();
-    }
-    
-    return jsonResponse({ ok: false, msg: 'Not found' }, 404);
+
+    return json({ ok: false, error: "NOT_FOUND" }, 404);
   }
 };
